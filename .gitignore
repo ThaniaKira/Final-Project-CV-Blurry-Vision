@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+.cache/
+data/hagrid_raw/
+*.tar.gz
+*.zip
+*.pt
+*.pth
+*.pkl
+.DS_Store

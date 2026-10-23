@@ -1,0 +1,32 @@
+{
+    "img_001": {
+        "labels": [
+            "call"
+        ],
+        "bboxes": [
+            [
+                0.2,
+                0.3,
+                0.4,
+                0.4
+            ]
+        ],
+        "image_width": 1920,
+        "image_height": 1080
+    },
+    "img_002": {
+        "labels": [
+            "mute"
+        ],
+        "bboxes": [
+            [
+                0.1,
+                0.1,
+                0.3,
+                0.3
+            ]
+        ],
+        "image_width": 1920,
+        "image_height": 1080
+    }
+}
