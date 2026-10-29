@@ -1,0 +1,322 @@
+{
+  "sample_01_Open_Hand": {
+    "labels": [
+      "Open_Hand"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_02_Fist": {
+    "labels": [
+      "Fist"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_03_Peace": {
+    "labels": [
+      "Peace"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "val"
+  },
+  "sample_04_Thumbs_Up": {
+    "labels": [
+      "Thumbs_Up"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "val"
+  },
+  "sample_05_Pointing": {
+    "labels": [
+      "Pointing"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "test"
+  },
+  "sample_06_OK": {
+    "labels": [
+      "OK"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "test"
+  },
+  "sample_07_Open_Hand": {
+    "labels": [
+      "Open_Hand"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_08_Fist": {
+    "labels": [
+      "Fist"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_09_Peace": {
+    "labels": [
+      "Peace"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "val"
+  },
+  "sample_10_Thumbs_Up": {
+    "labels": [
+      "Thumbs_Up"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "val"
+  },
+  "sample_11_Pointing": {
+    "labels": [
+      "Pointing"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "test"
+  },
+  "sample_12_OK": {
+    "labels": [
+      "OK"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "test"
+  },
+  "sample_13_Open_Hand": {
+    "labels": [
+      "Open_Hand"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_14_Fist": {
+    "labels": [
+      "Fist"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_15_Peace": {
+    "labels": [
+      "Peace"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "val"
+  },
+  "sample_16_Thumbs_Up": {
+    "labels": [
+      "Thumbs_Up"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "val"
+  },
+  "sample_17_Pointing": {
+    "labels": [
+      "Pointing"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "test"
+  },
+  "sample_18_OK": {
+    "labels": [
+      "OK"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "test"
+  },
+  "sample_19_Open_Hand": {
+    "labels": [
+      "Open_Hand"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  },
+  "sample_20_Fist": {
+    "labels": [
+      "Fist"
+    ],
+    "bboxes": [
+      [
+        0.2,
+        0.2,
+        0.6,
+        0.7
+      ]
+    ],
+    "image_width": 224,
+    "image_height": 224,
+    "split": "train"
+  }
+}
