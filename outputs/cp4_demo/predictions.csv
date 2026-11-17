@@ -1,0 +1,7 @@
+file,gesture,confidence,processing_ms,output_file
+data/test/Fist/sample_14_Fist.png,Fist,0.575,179.82,outputs/cp4_demo/res_sample_14_Fist.png
+data/test/OK/sample_12_OK.png,OK,0.48333333333333334,16.56,outputs/cp4_demo/res_sample_12_OK.png
+data/test/Open_Hand/sample_13_Open_Hand.png,Open_Hand,0.7083333333333334,12.63,outputs/cp4_demo/res_sample_13_Open_Hand.png
+data/test/Peace/sample_09_Peace.png,Peace,0.43333333333333335,16.29,outputs/cp4_demo/res_sample_09_Peace.png
+data/test/Pointing/sample_11_Pointing.png,Pointing,0.4083333333333333,21.38,outputs/cp4_demo/res_sample_11_Pointing.png
+data/test/Thumbs_Up/sample_10_Thumbs_Up.png,Thumbs_Up,0.5583333333333333,18.54,outputs/cp4_demo/res_sample_10_Thumbs_Up.png

@@ -1,0 +1,7 @@
+filepath,true_label,predicted_label,confidence,correct
+data/test/Open_Hand/sample_13_Open_Hand.png,Open_Hand,Open_Hand,0.70833,True
+data/test/Fist/sample_14_Fist.png,Fist,Fist,0.57500,True
+data/test/Peace/sample_09_Peace.png,Peace,Peace,0.43333,True
+data/test/Thumbs_Up/sample_10_Thumbs_Up.png,Thumbs_Up,Thumbs_Up,0.55833,True
+data/test/Pointing/sample_11_Pointing.png,Pointing,Pointing,0.40833,True
+data/test/OK/sample_12_OK.png,OK,OK,0.48333,True

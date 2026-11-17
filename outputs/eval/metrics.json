@@ -1,0 +1,74 @@
+{
+  "split": "test",
+  "n_test": 6,
+  "class_distribution": {
+    "Open_Hand": 1,
+    "Fist": 1,
+    "Peace": 1,
+    "Thumbs_Up": 1,
+    "Pointing": 1,
+    "OK": 1
+  },
+  "backend": "contour",
+  "weights_path": "models/gesture_contour.npz",
+  "weights_sha256": "341f7487c6bcb3dd6f3c314f7f40277cfa23595d7de469442c43ab719c9f37a0",
+  "test_set_note": "6 illustrated images in the original ZIP; does not establish real-world robustness",
+  "missing_class_handling": "No hand detected counts as incorrect for ground-truth gesture",
+  "main": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "latency_ms": 8.153529166672039,
+    "fps": 122.64627740433558,
+    "per_class": {
+      "Open_Hand": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Fist": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Peace": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Thumbs_Up": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Pointing": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "OK": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      }
+    }
+  },
+  "baseline": {
+    "accuracy": 0.16666666666666666,
+    "macro_f1": 0.06666666666666667,
+    "latency_ms": 2.278082833318725,
+    "fps": 438.96560097562116
+  },
+  "hardware": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "opencv": "4.13.0",
+    "numpy": "2.3.5"
+  },
+  "comparison_to_cp3": "CP3 report claims 100% MediaPipe/RF on six samples; this run uses contour backend and must not be interpreted as an improvement over that number."
+}

@@ -1,0 +1,13 @@
+id,input,condition,expected,actual,confidence,pass_fail,output
+TC01,data/test/Open_Hand/sample_13_Open_Hand.png,original held-out illustrated test image,Open_Hand,Open_Hand,0.708,PASS,outputs/test_cases/TC01.png
+TC02,data/test/Fist/sample_14_Fist.png,original held-out illustrated test image,Fist,Fist,0.575,PASS,outputs/test_cases/TC02.png
+TC03,data/test/Peace/sample_09_Peace.png,original held-out illustrated test image,Peace,Peace,0.433,PASS,outputs/test_cases/TC03.png
+TC04,data/test/Thumbs_Up/sample_10_Thumbs_Up.png,original held-out illustrated test image,Thumbs_Up,Thumbs_Up,0.558,PASS,outputs/test_cases/TC04.png
+TC05,data/test/Pointing/sample_11_Pointing.png,original held-out illustrated test image,Pointing,Pointing,0.408,PASS,outputs/test_cases/TC05.png
+TC06,data/test/OK/sample_12_OK.png,original held-out illustrated test image,OK,OK,0.483,PASS,outputs/test_cases/TC06.png
+TC07,data/test/Peace/sample_09_Peace.png,hard: very dim image,Peace,No hand detected,0.000,FAIL,outputs/test_cases/TC07.png
+TC08,data/test/Fist/sample_14_Fist.png,hard: heavy motion-like blur,Fist,Fist,0.517,PASS,outputs/test_cases/TC08.png
+TC09,data/test/Pointing/sample_11_Pointing.png,hard: very small gesture,Pointing,Peace,0.242,FAIL,outputs/test_cases/TC09.png
+TC10,data/test/OK/sample_12_OK.png,hard: 40-degree tilt,OK,Open_Hand,0.267,FAIL,outputs/test_cases/TC10.png
+TC11,data/test/Thumbs_Up/sample_10_Thumbs_Up.png,hard: large brightness shift,Thumbs_Up,No hand detected,0.000,FAIL,outputs/test_cases/TC11.png
+TC12,generated,no gesture/empty white field,No hand detected,No hand detected,0.000,PASS,outputs/test_cases/TC12.png

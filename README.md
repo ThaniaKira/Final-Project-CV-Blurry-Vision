@@ -1,117 +1,84 @@
-# Computer Vision: Real-Time Educational Hand Gesture Recognition System
+# Blurry Vision | Real-Time Educational Hand Gesture Recognition
 
-**Project Title**: Real-Time Educational Hand Gesture Recognition for Interactive Early Childhood Learning
-**Team Name**: Blurry Vision
-**Target Checkpoint**: Checkpoint 3 (Milestone 3 - Core Model Implementation & Testing)
-**Git Release Tag Target**: `cp3-core`
-**Repository URL**: `https://github.com/ThaniaKira/Final-Project-CV-Blurry-Vision.git`
+**Checkpoints:** CP4 80% package, with final packaging guidance. **Scope:** six static gesture classes (Open_Hand, Fist, Peace, Thumbs_Up, Pointing, OK). The browser application accepts uploaded images or webcam *snapshots*. The desktop OpenCV application displays a continuous webcam feed. Outputs include a class, confidence (random-forest voting proportion), detected contour box or genuine MediaPipe landmarks, and processing time.
 
----
+> **Verification warning:** The uploaded project contains only **20 illustrated gesture PNGs** (8 train, 6 val, 6 test), not a validated real-hand dataset. The included demo weights use **classical contour features + Random Forest**. They are *not* MediaPipe weights and are not validated on real hands. CP3's historical 100% MediaPipe claim was not independently reproducible from the archive. This package must not be described as classroom-ready or a proven 80% implementation without further verification.
 
-## 📌 Project Overview
-This project delivers a real-time, touchless hand gesture recognition system designed for interactive early childhood educational tools. Utilizing standard commercial webcams without depth/infrared sensors, the system identifies **6 target static hand gestures**:
-1. **Open_Hand** (Palm open / counting 5)
-2. **Fist** (Hand closed / counting 0)
-3. **Peace** (V-sign / counting 2)
-4. **Thumbs_Up** (Affirmative / like signal)
-5. **Pointing** (Index extended / selection signal)
-6. **OK** (OK ring gesture / confirmation signal)
+## Quick start (recommended Python 3.11)
 
----
-
-## ⚙️ Development Environment Setup
-
-### 1. Fresh Clone & Virtual Environment Setup
-```bash
-# Clone repository
-git clone https://github.com/ThaniaKira/Final-Project-CV-Blurry-Vision.git
-cd Final-Project-CV-Blurry-Vision
-
-# Create and activate Python virtual environment
+```powershell
 python -m venv .venv
-
-# Activate on Windows PowerShell:
 .venv\Scripts\activate
-
-# Activate on Linux / macOS:
-source .venv/bin/activate
-
-# Install pinned dependencies
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
+python src/app.py
 ```
 
----
+Linux/macOS: `source .venv/bin/activate`. Open the local Gradio URL (usually `http://127.0.0.1:7860`). This is the **one command to launch the app after installation**. You can use an image file or webcam snapshot. The model file `models/gesture_contour.npz` is included.
 
-## 🚀 How to Run the Pipeline (Milestone 3 Single Command)
+**Local continuous webcam (press Q to close):**
 
-### 1. Run Pipeline on Image or Folder
-Process an input image or folder of gesture samples with a single command:
 ```bash
-# Run end-to-end pipeline on sample folder
-python src/run.py --input data/samples --output outputs/run_results
-
-# Run on a single image file
-python src/run.py --input data/samples/sample_01_Open_Hand.png --output outputs/
+python src/demo_stream.py --webcam 0
 ```
 
-### 2. Single Image CLI Prediction
+The included weights may misclassify real hands, especially if skin colors/backgrounds or conditions differ from the illustrations. Use genuine data before presenting it as a real-world system. MediaPipe 0.10.14 requires a compatible Python version (the included requirements are intended for 3.10–3.11).
+
+## Reproduce reported numbers exactly on the included split
+
 ```bash
-python -m src.predict --input "data/samples/sample_01_Open_Hand.png" --output "outputs/result_sample_01.jpg"
+python src/evaluate.py --split test --weights models/gesture_contour.npz
 ```
 
-### 3. Run Benchmark Evaluation & Generate Metrics
-Evaluate the Classical Baseline vs MediaPipe Core Landmark Classifier on the held-out test split:
+The program prints accuracy, macro-F1, class metrics and **measured** latency, and writes `outputs/eval/metrics.json`, `outputs/eval/confusion_matrix.png`, and `outputs/eval/predictions.csv`. Accuracy is reproducible; FPS depends on the hardware, loads and runtime. To retrain the *classical contour model* without ever reading test data:
+
 ```bash
-python src/evaluate.py
+python src/train.py --backend contour --output models/gesture_contour.npz
 ```
-*Outputs accuracy, macro-F1, per-class precision/recall, inference FPS, and saves the **Confusion Matrix Display** plot to `outputs/confusion_matrix.png`.*
 
-### 4. Batch Process All Samples & Rebuild Contact Sheet
+To run all **12 original + edge-case** stress probes:
+
 ```bash
-python -m src.utils
+python src/test_cases.py
 ```
 
----
+Sample images: `data/test/*/*.png`. Batch processing:
 
-## 📁 Repository Directory Layout
-
-```text
-Final_Project_CV_Blurry_Vision_Phase_3_CP3/
-├── README.md                          # Quickstart guide & fresh clone instructions
-├── requirements.txt                    # Pinned python environment dependencies
-├── .gitignore                          # Excludes temporary & virtualenv files
-├── data/                               # Dataset directory
-│   ├── hagrid_sample_annotations.json # Metadata and bounding box annotations
-│   ├── contact_sheet.png              # 20-sample grid contact sheet
-│   ├── train/                         # Training split (70% by subject)
-│   ├── val/                           # Validation split (15% by subject)
-│   ├── test/                          # Locked test split (15% by subject)
-│   └── samples/                       # 20 attached sample gesture PNG images
-├── src/                                # Modular pipeline source code
-│   ├── __init__.py
-│   ├── preprocess.py                  # Gaussian blur, YCbCr skin mask, CLAHE & blur score
-│   ├── data_loader.py                 # Subject-based 70/15/15 dataset loader
-│   ├── baseline.py                    # Classical baseline model evaluator
-│   ├── main_model.py                  # MediaPipe 21 3D landmark extractor + classifier
-│   ├── run.py                         # Single-command end-to-end pipeline runner
-│   ├── predict.py                     # Single-image CLI predictor
-│   ├── evaluate.py                    # Benchmark evaluation & confusion matrix builder
-│   └── utils.py                       # Visualizations & contact sheet generator
-├── notebooks/                          # Feasibility & model exploration
-│   ├── 01_feasibility_spike.ipynb     # Milestone 1 feasibility spike
-│   └── 02_core_model_experiments.ipynb# Milestone 3 MediaPipe landmark experiments
-├── outputs/                            # Result screenshots & confusion matrix plot
-│   ├── confusion_matrix.png           # Evaluated confusion matrix
-│   └── ...                            # Pre-generated annotated screenshots
-└── docs/                               # Milestone documentation
-    ├── data_card.md                   # One-page Data Card
-    ├── milestone3_report.md           # Milestone 3 Progress Report & Error Analysis
-    └── cv-project-proposal.docx       # Project Proposal document
+```bash
+python src/run.py --input data/test --output outputs/new_predictions
+python src/predict.py --input data/test/Fist/sample_14_Fist.png --output outputs/one.png
+python src/run.py --input demo.mp4 --output outputs/video_demo
 ```
 
----
+## Genuine MediaPipe option — requires a new real-hand dataset
 
-## 🏷️ Milestone & Git Tag Reference
-- **Milestone 1**: `cp1-proposal` (Proposal & Feasibility Spike)
-- **Milestone 2**: `cp2-50` (50% Progress Check & Baseline Prototype)
-- **Milestone 3**: `cp3-core` (Core Model Implementation & Testing)
+A real landmark extractor is implemented in `src/gesture_runtime.py` (63 normalized landmark features). It **never substitutes synthetic keypoints**. When real labeled images are present in `data/train/<class>/`, run:
+
+```bash
+python src/train.py --backend mediapipe --output models/gesture_mediapipe.npz
+python src/evaluate.py --split test --weights models/gesture_mediapipe.npz
+python src/app.py --weights models/gesture_mediapipe.npz
+```
+
+If MediaPipe cannot find all six classes in training, training fails explicitly. Do not train or tune on test images. Save the final verified weights on GitHub Releases or a documented drive link if they grow too large, and note the file SHA-256 in `metrics.json`.
+
+## Repository contents
+
+- `src/gesture_runtime.py` — feature extraction, model loading, inference and rendering (true box/points).
+- `src/train.py`, `src/evaluate.py` — train without test leakage; generate confusion matrix and JSON.
+- `src/app.py`, `src/demo_stream.py`, `src/run.py`, `src/predict.py` — Gradio, continuous webcam, batch/video and single-image runners.
+- `src/baseline.py` — classical color-moments + 1NN baseline.
+- `src/test_cases.py`, `outputs/test_cases/` — 12 cases (including >=3 hard cases), actual results, outputs.
+- `models/gesture_contour.npz` — compact shipped model weights, backend documented.
+- `docs/data_card.md`, `docs/milestone4_report_draft.md`, `docs/remaining.md` — data provenance, CP4 report and outstanding work.
+- `docs/final_report.pdf`, `docs/final_slides.pdf`, `docs/contributions/` — final drafts when available.
+- `outputs/eval/` — metrics.json, per-image results and confusion matrix.
+
+## Source/licence and privacy
+
+The illustrations in the archive have **no verified external dataset licence**. HaGRID-like filenames or metadata do not prove HaGRID provenance. Collect real-hand examples only with permission; obtain consent and permissions before filming minors and avoid publishing identifying media.
+
+## Team contributions and Git tags
+
+Historical proposals name **Bulos** for preprocessing/baseline and **Ramos** for main classifier/demo, but the provided Git history contains only one initial commit attributed to ThaniaKira. That history **does not verify individual authorship** of each file. Each person must add their own true 3–5 important commit links to the individual statement. Local snapshot tags `cp4-80` / `v1.0` in distributed ZIPs are not proof of a remote push: confirm them on GitHub after review.
+
+Run `git tag -l`, `git log --oneline --decorate`, then `git push origin main --tags` **only after your team reviews the changes and authenticates the commits**. Avoid retagging old grades or falsely attributing contributions.

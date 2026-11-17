@@ -17,7 +17,9 @@ class GestureDataLoader:
         filepaths = []
         
         if not os.path.exists(split_dir):
-            # Fallback to loading all from data/samples/
+            if split != "samples":
+                raise FileNotFoundError(f"Dataset split missing: {split_dir}; no fallback to another split")
+            # Explicit samples mode for old exploration scripts ONLY
             samples_dir = os.path.join(self.data_root, "samples")
             for img_p in sorted(glob.glob(os.path.join(samples_dir, "*.png"))):
                 fname = os.path.basename(img_p)
