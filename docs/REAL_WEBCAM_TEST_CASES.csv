@@ -1,0 +1,13 @@
+ID,Gesture,Input condition,Expected result,Actual label,Detection box on actual hand?,Pass/Fail,Notes
+TC01,Open_Hand,Daylight plain wall,Open_Hand,,,,
+TC02,Fist,Daylight plain wall,Fist,,,,
+TC03,Peace,Daylight plain wall,Peace,,,,
+TC04,Thumbs_Up,Daylight plain wall,Thumbs_Up,,,,
+TC05,Pointing,Daylight plain wall,Pointing,,,,
+TC06,OK,Daylight plain wall,OK,,,,
+TC07,Open_Hand,Dim indoor light (edge case),Open_Hand or explicitly no-hand,,,,
+TC08,Peace,Busy background with people (edge case),Peace if visible,,,,
+TC09,Thumbs_Up,Strong hand rotation 45 degrees (edge case),Thumbs_Up or uncertain,,,,
+TC10,Fist,Hand partially cut off (edge case),No hand or low-confidence state,,,,
+TC11,Open_Hand,Half distance from camera,Open_Hand,,,,
+TC12,Pointing,Fast movement / motion blur (edge case),Pointing if hand detected,,,,

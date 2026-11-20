@@ -1,0 +1,28 @@
+BLURRY VISION PHASE 4 — WINDOWS / VISUAL STUDIO CODE
+====================================================
+
+1. Open Blurry_Vision_CP4 in VS Code. Open Terminal / New Terminal.
+2. In PowerShell:
+
+   py -3.11 -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   python -m pip install -r requirements.txt
+   python src/app.py
+
+3. Open http://127.0.0.1:7860 in the browser.
+4. Select "MediaPipe hand landmarks + geometric rules" to test a real open palm immediately.
+   The original (cartoon-only) contour model can still be chosen as a comparison.
+
+FOR AN ACTUALLY TRAINED KAGGLE MODEL:
+
+   python -m pip install kaggle
+   python src/prepare_kaggle.py --download --max-per-class 400
+   python src/train.py --backend mediapipe --data data/hagrid_real --output models/gesture_hagrid_mediapipe.npz
+   python src/evaluate.py --split test --data data/hagrid_real --weights models/gesture_hagrid_mediapipe.npz --output outputs/hagrid_eval
+   python src/app.py
+
+Restart the app after training, and select the Kaggle-trained Random Forest.
+Full instructions, dataset URL, alternatives, and limitations: docs/KAGGLE_TRAINING.md
+
+IMPORTANT: The Kaggle dataset (~1 GB) and newly trained weights are NOT embedded in this ZIP.
+No truthful 80-90% accuracy claim can be made before measuring real test results.

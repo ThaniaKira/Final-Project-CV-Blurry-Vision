@@ -1,3 +1,17 @@
+# AFTER KAGGLE ENHANCEMENT: ACTIONS REQUIRED FOR HONEST 80–90% TARGET
+
+- [ ] Download Kaggle HaGRID sample (~1GB), comply with source license, record version/date.
+- [ ] Run `src/prepare_kaggle.py` and verify class counts and non-overlapping user IDs.
+- [ ] Train `models/gesture_hagrid_mediapipe.npz` using **real photos**. Check per-class MediaPipe detection coverage.
+- [ ] Generate `outputs/hagrid_eval/metrics.json`, confusion matrix and failures, without tuning on the test set.
+- [ ] If held-out accuracy falls outside 80–90%, report the actual value and use *validation* to guide improvements.
+- [ ] Complete `docs/REAL_WEBCAM_TEST_CASES.csv` with observed actual outputs, including 3+ hard cases.
+- [ ] Measure webcam speed on the demo laptop; do not substitute image-only speed.
+- [ ] Add actual updated report, screenshots, slides, and <=5-minute demo recording.
+- [ ] Commit enhancements under the actual contributor's Git identity; create a new tag tied to the verified build.
+
+---
+
 # CP4 → Final: written task list (teacher sign-off pending)
 
 > These are **proposed**, not agreed in class. Confirm owners and priorities with the instructor. Deadline Thu 19 Nov 2026, 11:30 PM.

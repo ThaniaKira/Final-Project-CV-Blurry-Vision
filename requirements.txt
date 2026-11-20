@@ -1,6 +1,5 @@
-# Supported demo environment: CPython 3.10–3.11 (MediaPipe solutions API).
-# The shipped model is a *contour* model; MediaPipe is required only to train/use
-# the optional genuine 21-landmark backend.
+# Windows compatible tested-target versions for Python 3.11. Install Python 3.11 first.
+# Gradio 4.x is incompatible with some recently released web-framework packages.
 numpy==1.26.4
 opencv-python==4.10.0.84
 scikit-learn==1.5.2
@@ -8,3 +7,8 @@ joblib==1.4.2
 matplotlib==3.8.4
 gradio==4.44.1
 mediapipe==0.10.14
+huggingface_hub==0.25.2
+pydantic==2.10.6
+fastapi==0.112.4
+starlette==0.38.6
+# For Kaggle download separately: python -m pip install kaggle

@@ -1,3 +1,26 @@
+# BLURRY VISION — ENHANCED PHASE 4 (REAL HAND / KAGGLE WORKFLOW)
+
+**Start here:** `START_HERE_WINDOWS.txt` then `docs/KAGGLE_TRAINING.md`.
+
+**First-run app (real hand, rule-based without training):**
+```powershell
+python src/app.py
+```
+
+**To use an actual trained Kaggle HaGRID MediaPipe + Random Forest model:**
+```powershell
+python -m pip install kaggle
+python src/prepare_kaggle.py --download --max-per-class 400
+python src/train.py --backend mediapipe --data data/hagrid_real --output models/gesture_hagrid_mediapipe.npz
+python src/evaluate.py --split test --data data/hagrid_real --weights models/gesture_hagrid_mediapipe.npz --output outputs/hagrid_eval
+python src/app.py
+```
+**Not included:** 1 GB Kaggle real images or new trained weights. Accuracy target 80–90% is not guaranteed; report only the held-out accuracy after the commands run. Original six illustrated test images are kept for comparisons, not as real-world evidence.
+
+---
+
+## Archived original Phase 4 README (illustrated-classifier notes)
+
 # Blurry Vision | Real-Time Educational Hand Gesture Recognition
 
 **Checkpoints:** CP4 80% package, with final packaging guidance. **Scope:** six static gesture classes (Open_Hand, Fist, Peace, Thumbs_Up, Pointing, OK). The browser application accepts uploaded images or webcam *snapshots*. The desktop OpenCV application displays a continuous webcam feed. Outputs include a class, confidence (random-forest voting proportion), detected contour box or genuine MediaPipe landmarks, and processing time.

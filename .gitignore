@@ -7,3 +7,12 @@ __pycache__/
 *.mp4
 outputs/run_output/
 outputs/teacher_inputs/
+
+# Exclude downloaded Kaggle photographs and model checkpoints until explicitly validated
+data/kaggle_raw/
+data/hagrid_real/
+models/gesture_hagrid_mediapipe.npz
+models/*.training.json
+outputs/hagrid_eval/
+.venv/
+__pycache__/

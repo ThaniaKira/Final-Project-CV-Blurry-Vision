@@ -41,8 +41,12 @@ class FeatureExtractor:
                     raise BackendUnavailable("MediaPipe solutions.hands is unavailable; install the supported version")
                 self.hands = mp.solutions.hands.Hands(
                     static_image_mode=not stream, max_num_hands=1,
-                    min_detection_confidence=0.50,
-                    min_tracking_confidence=0.50,
+                    # Snapshot uploads frequently have uneven room lighting.
+                    # 0.35 retains MediaPipe's landmark validation while avoiding
+                    # unnecessary missed hands from the 0.50 demo default.
+                    min_detection_confidence=0.35,
+                    min_tracking_confidence=0.40,
+                    model_complexity=1,
                 )
             except ImportError as exc:
                 raise BackendUnavailable("MediaPipe is not installed; use --backend contour or install requirements.txt") from exc
@@ -50,6 +54,22 @@ class FeatureExtractor:
     def close(self):
         if self.hands is not None:
             self.hands.close()
+
+    def _detect_hand_landmarks(self, frame_bgr):
+        """Run a normal pass, then a low-light-safe pass if necessary.
+
+        The second pass changes only luminance, so any coordinates still refer
+        exactly to the source frame.  It avoids the misleading alternative of
+        drawing estimated fingers when MediaPipe has not detected a real hand.
+        """
+        result = self.hands.process(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
+        if result.multi_hand_landmarks:
+            return result
+        lab = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2LAB)
+        light, a, b = cv2.split(lab)
+        light = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(light)
+        enhanced = cv2.cvtColor(cv2.merge((light, a, b)), cv2.COLOR_LAB2BGR)
+        return self.hands.process(cv2.cvtColor(enhanced, cv2.COLOR_BGR2RGB))
 
     def extract(self, image_bgr):
         """Return (feature or None, box or None, points or None, blur_score).
@@ -59,25 +79,37 @@ class FeatureExtractor:
         """
         if image_bgr is None or image_bgr.size == 0:
             raise ValueError("Empty or unreadable image")
-        resized, mask, _, _ = preprocess_pipeline(image_bgr, target_size=(224, 224))
-        blur_score = compute_blur_score(cv2.resize(image_bgr, (224, 224)))
+        # Preserve original aspect ratio, resolution and color for MediaPipe;
+        # the classical skin detector alone uses a 224x224 blurred/thresholded input.
         if self.backend == "mediapipe":
-            result = self.hands.process(cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+            height, width = image_bgr.shape[:2]
+            blur_score = compute_blur_score(cv2.resize(image_bgr, (224, 224)))
+            scale = min(1.0, 960.0/max(height,width))
+            frame = cv2.resize(image_bgr, None, fx=scale, fy=scale) if scale<1 else image_bgr
+            result = self._detect_hand_landmarks(frame)
             if not result.multi_hand_landmarks:
                 return None, None, None, blur_score
-            points = np.array([[p.x, p.y, p.z] for p in result.multi_hand_landmarks[0].landmark], dtype=np.float32)
-            center = points[0].copy()
-            centered = points - center
-            # Scale invariance: normalize each coordinate by palm span (wrist to MCP).
-            palm_span = max(float(np.linalg.norm(centered[9, :2])), 1e-4)
-            centered /= palm_span
-            # 63 real MediaPipe landmark features; do not invent landmarks.
-            feature = centered.ravel()
-            xy = np.clip(points[:, :2] * 224, 0, 223).astype(int)
-            x1, y1 = xy.min(axis=0).tolist()
-            x2, y2 = xy.max(axis=0).tolist()
-            return feature, (x1, y1, x2, y2), xy.tolist(), blur_score
+            points = np.asarray([[p.x,p.y,p.z] for p in result.multi_hand_landmarks[0].landmark], dtype=np.float32)
+            # Use pixel coordinates before normalizing. Raw MediaPipe x/y values
+            # represent relative image width/height, not equal-length units.
+            xy_pixel = points[:,:2]*np.asarray([width,height],dtype=np.float32)
+            center = xy_pixel[0]
+            palm_span = max(float(np.linalg.norm(xy_pixel[9]-center)), 1.0)
+            relative_xy = (xy_pixel-center)/palm_span
+            relative_z = ((points[:,2]-points[0,2])*width/palm_span).reshape(-1,1)
+            feature = np.hstack((relative_xy,relative_z)).ravel().astype(np.float32)
+            xy = np.clip(points[:,:2]*224,0,223).astype(int)
+            x1,y1 = xy.min(axis=0).tolist()
+            x2,y2 = xy.max(axis=0).tolist()
+            # Landmarks sit inside the fingers, so include a small visual margin
+            # rather than returning a box that appears to cut fingertips off.
+            margin = 8
+            x1, y1 = max(0, x1-margin), max(0, y1-margin)
+            x2, y2 = min(223, x2+margin), min(223, y2+margin)
+            return feature, (x1,y1,x2,y2), xy.tolist(), blur_score
 
+        resized, mask, _, _ = preprocess_pipeline(image_bgr, target_size=(224,224))
+        blur_score = compute_blur_score(cv2.resize(image_bgr, (224,224)))
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not contours:
             return None, None, None, blur_score
@@ -190,8 +222,18 @@ def draw_result(image_bgr, prediction):
         xs, ys = w/224, h/224
         cv2.rectangle(base, (int(x1*xs), int(y1*ys)), (int(x2*xs), int(y2*ys)), (78, 224, 113), 2)
     if prediction.points:
+        # MediaPipe's canonical 21-landmark hand skeleton. Drawing the links as
+        # well as the points makes finger detection auditable to the user.
+        connections = ((0,1),(1,2),(2,3),(3,4),(0,5),(5,6),(6,7),(7,8),
+                       (5,9),(9,10),(10,11),(11,12),(9,13),(13,14),(14,15),
+                       (15,16),(13,17),(17,18),(18,19),(19,20),(0,17))
+        for a, b in connections:
+            ax, ay = prediction.points[a]
+            bx, by = prediction.points[b]
+            cv2.line(base, (int(ax*w/224), int(ay*h/224)),
+                     (int(bx*w/224), int(by*h/224)), (191, 125, 255), 2, cv2.LINE_AA)
         for x, y in prediction.points:
-            cv2.circle(base, (int(x*w/224), int(y*h/224)), 3, (0, 206, 255), -1)
+            cv2.circle(base, (int(x*w/224), int(y*h/224)), 4, (0, 218, 255), -1)
     cv2.rectangle(base, (0, 0), (w, 65), (32, 26, 48), thickness=-1)
     cv2.putText(base, f"{prediction.label} | {prediction.confidence:.0%}", (10, 26),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
