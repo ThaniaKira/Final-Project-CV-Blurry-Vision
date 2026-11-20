@@ -7,7 +7,15 @@ class GestureDataLoader:
     """Dataset loader supporting 70/15/15 train/val/test splits."""
     def __init__(self, data_root="data"):
         self.data_root = data_root
-        self.classes = ["Open_Hand", "Fist", "Peace", "Thumbs_Up", "Pointing", "OK"]
+        core = ["Open_Hand", "Fist", "Peace", "Thumbs_Up", "Pointing", "OK"]
+        discovered = set()
+        for split in ("train", "val", "test"):
+            folder = os.path.join(data_root, split)
+            if os.path.isdir(folder):
+                discovered.update(name for name in os.listdir(folder)
+                                  if os.path.isdir(os.path.join(folder, name)))
+        self.classes = [c for c in core if c in discovered or not discovered]
+        self.classes += sorted(discovered - set(core))
         
     def load_split(self, split="train"):
         """Loads all images and class labels for a given split ('train', 'val', 'test')."""

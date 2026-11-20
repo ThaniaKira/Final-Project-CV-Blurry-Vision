@@ -23,7 +23,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 from src.data_loader import GestureDataLoader
 from src.baseline import ClassicalBaselineModel
-from src.gesture_runtime import GestureRecognizer, CLASSES, sha256_file, draw_result
+from src.gesture_runtime import GestureRecognizer, sha256_file, draw_result
 
 
 def measure(model, images, predictions):
@@ -66,13 +66,20 @@ def evaluate(split="test", weights="models/gesture_contour.npz", data="data", ou
     if model.backend=="contour" and real_dataset:
         print("NOTE: Evaluating legacy contour backend on real HaGRID data (diagnostic comparison only).")
     try:
+        # Weight files carry their own label set. This supports the six-class
+        # legacy model and the expanded 35-class HaGRID model without silently
+        # dropping extra labels from macro-F1 or the confusion matrix.
+        class_labels=tuple(model.estimator.classes_)
+        unexpected=set(labels)-set(class_labels)
+        if unexpected:
+            raise RuntimeError(f"Evaluation labels absent from model weights: {sorted(unexpected)}")
         preds = [model.predict(im) for im in images]
         y_pred = [p.label for p in preds]
         latency = measure(model, images, preds)
-        main_report = classification_report(labels, y_pred, labels=list(CLASSES), output_dict=True, zero_division=0)
-        cm = confusion_matrix(labels, y_pred, labels=list(CLASSES))
+        main_report = classification_report(labels, y_pred, labels=list(class_labels), output_dict=True, zero_division=0)
+        cm = confusion_matrix(labels, y_pred, labels=list(class_labels))
         fig, ax = plt.subplots(figsize=(8, 6))
-        ConfusionMatrixDisplay(cm, display_labels=list(CLASSES)).plot(ax=ax, cmap="Blues", colorbar=False, xticks_rotation=30)
+        ConfusionMatrixDisplay(cm, display_labels=list(class_labels)).plot(ax=ax, cmap="Blues", colorbar=False, xticks_rotation=30)
         ax.set_title(f"{model.backend} model — {split} set (n={len(labels)})")
         fig.tight_layout()
         fig.savefig(Path(out)/"confusion_matrix.png", dpi=140)
@@ -109,7 +116,7 @@ def evaluate(split="test", weights="models/gesture_contour.npz", data="data", ou
         baseline.predict(images)
         b_latency=(time.perf_counter()-b_start)/len(images)*1000
         result = {
-            "split":split,"n_test":len(images),"class_distribution":{c:int(labels.count(c)) for c in CLASSES},
+            "split":split,"n_test":len(images),"class_labels":list(class_labels),"class_distribution":{c:int(labels.count(c)) for c in class_labels},
             "backend":model.backend,"weights_path":str(weights),"weights_sha256":sha256_file(weights),
             "data_path":str(data),
             "test_set_note":("HaGRID cropped real hand photos, subject-disjoint by user_id; "
@@ -120,11 +127,13 @@ def evaluate(split="test", weights="models/gesture_contour.npz", data="data", ou
             "hand_detection_rate":float(sum(p.box is not None for p in preds)/len(preds)),
             "missing_class_handling":"No hand detected counts as incorrect for ground-truth gesture",
             "main":{"accuracy":float(accuracy_score(labels,y_pred)),
-                    "macro_f1":float(f1_score(labels,y_pred,labels=list(CLASSES),average="macro",zero_division=0)),
+                    "macro_f1":float(f1_score(labels,y_pred,labels=list(class_labels),average="macro",zero_division=0)),
                     "latency_ms":latency,"fps":1000/latency if latency else None,
-                    "per_class":{c:{k:float(main_report[c][k]) if k!='support' else int(main_report[c][k]) for k in ('precision','recall','f1-score','support')} for c in CLASSES}},
+                    "per_class":{c:{k:float(main_report[c][k]) if k!='support' else int(main_report[c][k])
+                                    for k in ('precision','recall','f1-score','support')}
+                                 for c in class_labels}},
             "baseline":{"accuracy":float(accuracy_score(labels,b_preds)),
-                        "macro_f1":float(f1_score(labels,b_preds,labels=list(CLASSES),average="macro",zero_division=0)),
+                        "macro_f1":float(f1_score(labels,b_preds,labels=list(class_labels),average="macro",zero_division=0)),
                         "latency_ms":b_latency,"fps":1000/b_latency if b_latency>0 else None},
             "hardware":{"platform":platform.platform(),"python":platform.python_version(),
                         "opencv":cv2.__version__,"numpy":np.__version__},
@@ -138,7 +147,7 @@ def evaluate(split="test", weights="models/gesture_contour.npz", data="data", ou
         print(f"Split: {split}, n={len(images)}, backend: {model.backend}, weights SHA256: {result['weights_sha256'][:16]}...")
         print(f"Baseline: accuracy={result['baseline']['accuracy']:.4f}, macro-F1={result['baseline']['macro_f1']:.4f}, latency={b_latency:.2f} ms/image")
         print(f"Main:     accuracy={result['main']['accuracy']:.4f}, macro-F1={result['main']['macro_f1']:.4f}, latency={latency:.2f} ms/image, FPS={result['main']['fps']:.1f}")
-        print(classification_report(labels,y_pred, labels=list(CLASSES), zero_division=0))
+        print(classification_report(labels,y_pred, labels=list(class_labels), zero_division=0))
         print(f"Saved {out_path}, {Path(out)/'confusion_matrix.png'}, predictions.csv")
         if real_dataset:
             print(f"REAL HAND DATA: {len(images)} images, genuine detected hands: {result['hand_detection_rate']:.1%}; "

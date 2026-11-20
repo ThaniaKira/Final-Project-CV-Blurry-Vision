@@ -4,7 +4,7 @@ This upgrade addresses the **Open Hand mistakenly labeled Pointing** webcam fail
 
 ## Source and six-class label mapping
 
-Kaggle: <https://www.kaggle.com/datasets/innominate817/hagrid-sample-30k-384p> (HaGRID Sample 30k, downscaled to 384p; approximately 1 GB download). Original dataset: <https://www.kaggle.com/datasets/kapitanov/hagrid>. The six source labels are:
+Kaggle: <https://www.kaggle.com/datasets/kapitanov/hagrid> (official HaGRID release; large download). The importer also accepts the older 30k mirror when you pass its extracted directory or ZIP explicitly. The six source labels are:
 
 | HaGRID label | Blurry Vision label | Action |
 |---|---|---|
@@ -34,11 +34,10 @@ If PowerShell refuses the activation script: `Set-ExecutionPolicy -Scope Process
 **1. Download the HaGRID sample from Kaggle (requires internet).** The easy command is:
 
 ```powershell
-python -m pip install kaggle
-python src/prepare_kaggle.py --download --max-per-class 400
+python src/prepare_kaggle.py --download --all-gestures --max-per-class 800
 ```
 
-The downloader calls the official `kaggle` command. Some Kaggle configurations may require signing in or adding credentials; follow Kaggle's instructions if you receive a 401/403 error. Never commit your private Kaggle credentials.
+The downloader calls `kagglehub.dataset_download("kapitanov/hagrid")`. The Hugging Face adapter in the supplied KaggleHub snippet reads one specified tabular file; it cannot prepare HaGRID's image/annotation tree when `file_path` is blank. Some Kaggle configurations may require signing in or adding credentials; follow Kaggle's instructions if you receive a 401/403 error. Never commit private Kaggle credentials.
 
 **Alternative if direct download fails:** Open <https://www.kaggle.com/datasets/innominate817/hagrid-sample-30k-384p>, download its ZIP manually, then run:
 
@@ -56,7 +55,7 @@ The importer splits by HaGRID **`user_id`**, globally across the six classes. A 
 python src/train.py --backend mediapipe --data data/hagrid_real --output models/gesture_hagrid_mediapipe.npz
 ```
 
-This can run on a CPU laptop. It requires enough real hand photos for MediaPipe to find hand landmarks; it reports detection coverage on validation. It compares three Random Forest settings using validation macro-F1, chooses one, and saves a portable NPZ. Training-only horizontal mirroring is enabled. The **test set is not used** to select or fit the model.
+This can run on a CPU laptop. It requires enough real hand photos for MediaPipe to find hand landmarks; it reports detection coverage on validation. With `--all-gestures`, preparation includes HaGRID's 34 total classes (33 named gestures plus `No Gesture`), so `Dislike` is a valid output rather than being forced into `Thumbs Up`. It compares tuned Random Forest and Extra Trees settings using validation macro-F1, chooses one, and saves a portable NPZ. The feature vector includes wrist-relative landmarks plus hand-bone/tip-distance features; training-only horizontal mirroring is enabled. The **test set is not used** to select or fit the model.
 
 **3. Evaluate your REAL held-out test images.**
 
@@ -88,7 +87,7 @@ Use `--mode rules` for the instant rule-based real-hand demo (works without Kagg
 - Report the measured *held-out Kaggle* accuracy and macro-F1, plus no-hand detection percentage, and class-level failures. Keep the older **6 illustrated test images / 100%** results separate; those do not establish real-world accuracy.
 - The HaGRID 30K sample has numerous hand poses photographed under many conditions, but a subject-disjoint 6-class assessment on this subset is a **new experiment**, not a score published by Kaggle.
 - Test live webcam cases separately (at least ten, including harsh lighting, clutter, occlusion). Take real photos with informed consent before including children. Do not claim real-time performance without timing it on the demonstration laptop.
-- **If held-out accuracy is below 80%:** inspect the confusion matrix, increase per-class training photos, fix low detection coverage, test the dataset's hand crops, and retune using validation only. Do not manipulate the test set to hit a target.
+- **If held-out accuracy is below 80%:** inspect the confusion matrix, increase per-class training photos (try 800, then all available), fix low detection coverage, test the dataset's hand crops, and retune using validation only. Do not manipulate the test set to hit a target.
 
 ## If the app shows the wrong label
 

@@ -13,7 +13,7 @@ import argparse
 import json
 from pathlib import Path
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
 
 from src.data_loader import GestureDataLoader
@@ -77,34 +77,45 @@ def train(backend="mediapipe",output=None,root="data/hagrid_real",seed=42,mirror
         V,vy,vpaths=extract_split(extractor,val_images,val_labels,val_paths,"val")
     finally:
         extractor.close()
-    if len(set(y))!=len(CLASSES):
-        raise RuntimeError(f"Training lacks class(es): {set(CLASSES)-set(y)}")
+    class_labels=tuple(data.classes)
+    if set(y) != set(class_labels):
+        raise RuntimeError(f"Training lacks class(es): {set(class_labels)-set(y)}")
     if len(X)<36:
         raise RuntimeError(f"Only {len(X)} detected real hands. More Kaggle samples needed.")
     if mirror and backend=="mediapipe":
-        # Mirror 3D landmark x in wrist-relative coordinates; train-only augmentation.
-        mirrored=X.reshape(-1,21,3).copy()
-        mirrored[:,:,0]*=-1
-        X=np.vstack((X,mirrored.reshape(-1,63)))
+        # landmark-v2 starts with 21 (x,y) pairs.  The remaining z and
+        # distance features are unchanged by a horizontal reflection.
+        mirrored=X.copy()
+        mirrored[:, :42:2] *= -1
+        X=np.vstack((X,mirrored))
         y=np.hstack((y,y))
-    candidate_settings=[(160,2,22),(240,1,22),(240,2,None)]
+    # Select only against validation. Extra Trees is included because its
+    # randomized thresholds often separate correlated landmark coordinates
+    # more cleanly than a conventional RF on diverse HaGRID photographs.
+    candidate_settings=[
+        ("random_forest", 320, 1, 24),
+        ("random_forest", 480, 2, None),
+        ("extra_trees", 360, 1, 28),
+        ("extra_trees", 480, 2, None),
+    ]
     candidates=[]
-    for n_estimators,min_leaf,max_depth in candidate_settings:
-        clf=RandomForestClassifier(n_estimators=n_estimators,min_samples_leaf=min_leaf,
-                                   max_depth=max_depth,random_state=seed,n_jobs=-1,
-                                   class_weight="balanced_subsample")
+    for kind,n_estimators,min_leaf,max_depth in candidate_settings:
+        classifier = ExtraTreesClassifier if kind == "extra_trees" else RandomForestClassifier
+        clf=classifier(n_estimators=n_estimators,min_samples_leaf=min_leaf,
+                       max_depth=max_depth,random_state=seed,n_jobs=-1,
+                       class_weight="balanced_subsample",max_features="sqrt")
         clf.fit(X,y)
         vp=clf.predict(V)
-        f1=float(f1_score(vy,vp,labels=list(CLASSES),average="macro",zero_division=0))
+        f1=float(f1_score(vy,vp,labels=list(class_labels),average="macro",zero_division=0))
         acc=float(accuracy_score(vy,vp))
-        print(f"Candidate {n_estimators} trees, leaf {min_leaf}, depth {max_depth}: "
+        print(f"Candidate {kind}, {n_estimators} trees, leaf {min_leaf}, depth {max_depth}: "
               f"validation accuracy={acc:.3f}, macro-F1={f1:.3f}")
-        candidates.append((f1,acc,clf,(n_estimators,min_leaf,max_depth)))
+        candidates.append((f1,acc,clf,(kind,n_estimators,min_leaf,max_depth)))
     _,_,best,config=max(candidates,key=lambda item:(item[0],item[1]))
     selection_predictions=best.predict(V)
     # Count failed MediaPipe detections against labels, rather than reporting
     # inflated detection-conditional accuracy.
-    success={k:0 for k in CLASSES}
+    success={k:0 for k in class_labels}
     for cls in vy:success[str(cls)]+=1
     coverage=len(V)/len(val_labels)
     val_correct=sum(a==b for a,b in zip(vy,selection_predictions))
@@ -115,12 +126,13 @@ def train(backend="mediapipe",output=None,root="data/hagrid_real",seed=42,mirror
     valid_paths=set(vpaths)
     for path in val_paths:
         all_val_preds.append(next(valid_pred_iter) if path in valid_paths else "No hand detected")
-    full_f1=float(f1fn(val_labels,all_val_preds,labels=list(CLASSES),average="macro",zero_division=0))
+    full_f1=float(f1fn(val_labels,all_val_preds,labels=list(class_labels),average="macro",zero_division=0))
     metadata={"dataset":str(root),"dataset_source":"https://www.kaggle.com/datasets/innominate817/hagrid-sample-30k-384p",
-              "seed":seed,"backend":backend,"train_detected":len(paths),"train_images":len(train_labels),
+              "seed":seed,"backend":backend,"class_labels":list(class_labels),"train_detected":len(paths),"train_images":len(train_labels),
               "val_detected":len(vpaths),"val_images":len(val_labels),"validation_detection_coverage":coverage,
               "validation_accuracy_all_images":accuracy_full,"validation_macro_f1_all_images":full_f1,
-              "mirrored_train_only":bool(mirror),"selected_rf":{"n_estimators":config[0],"min_samples_leaf":config[1],"max_depth":config[2]},
+              "mirrored_train_only":bool(mirror),"feature_schema":"landmark-v2: wrist-relative xyz + pose distances",
+              "selected_forest":{"algorithm":config[0],"n_estimators":config[1],"min_samples_leaf":config[2],"max_depth":config[3]},
               "warning":"Validation not test; test results require src/evaluate.py. Real webcam performance is separate."}
     portable_save(best,backend,output,metadata)
     Path(output).with_suffix(".training.json").write_text(json.dumps(metadata,indent=2),encoding="utf-8")

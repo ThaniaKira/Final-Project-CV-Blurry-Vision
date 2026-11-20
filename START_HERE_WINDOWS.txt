@@ -1,3 +1,25 @@
+PHASE 5 — NEW WEBSITE (HOME + SEPARATE RECOGNITION STUDIO)
+==========================================================
+From the extracted project's folder in VS Code:
+
+  py -3.11 -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+  python -m pip install -r requirements.txt
+  python src/app.py
+
+Then open http://127.0.0.1:7860/
+   Home: /            Gesture Studio: /studio            Gesture Guide: /guide
+
+The original models, weights, training and evaluation code are unchanged.
+Trained Kaggle weights are NOT included in the uploaded Phase 4 ZIP.
+If you have trained them on your machine, copy those weights into models/.
+
+Detailed UI guide: docs/PHASE5_UI_UX_README.md
+
+==========================================================
+PREVIOUS PHASE 4 INSTRUCTIONS BELOW
+==========================================================
+
 BLURRY VISION PHASE 4 — WINDOWS / VISUAL STUDIO CODE
 ====================================================
 

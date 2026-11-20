@@ -1,0 +1,123 @@
+{
+  "split": "test",
+  "n_test": 6,
+  "class_labels": [
+    "Fist",
+    "OK",
+    "Open_Hand",
+    "Peace",
+    "Pointing",
+    "Thumbs_Up"
+  ],
+  "class_distribution": {
+    "Fist": 1,
+    "OK": 1,
+    "Open_Hand": 1,
+    "Peace": 1,
+    "Pointing": 1,
+    "Thumbs_Up": 1
+  },
+  "backend": "contour",
+  "weights_path": "models/gesture_contour.npz",
+  "weights_sha256": "341f7487c6bcb3dd6f3c314f7f40277cfa23595d7de469442c43ab719c9f37a0",
+  "data_path": "data",
+  "test_set_note": "Only six illustrated test images in the original ZIP; not webcam evidence",
+  "gallery_examples": [
+    {
+      "file": "outputs\\current_eval\\gallery\\correct_Open_Hand_sample_13_Open_Hand.jpg",
+      "ground_truth": "Open_Hand",
+      "predicted": "Open_Hand",
+      "correct": true
+    },
+    {
+      "file": "outputs\\current_eval\\gallery\\correct_Fist_sample_14_Fist.jpg",
+      "ground_truth": "Fist",
+      "predicted": "Fist",
+      "correct": true
+    },
+    {
+      "file": "outputs\\current_eval\\gallery\\correct_Peace_sample_09_Peace.jpg",
+      "ground_truth": "Peace",
+      "predicted": "Peace",
+      "correct": true
+    },
+    {
+      "file": "outputs\\current_eval\\gallery\\correct_Thumbs_Up_sample_10_Thumbs_Up.jpg",
+      "ground_truth": "Thumbs_Up",
+      "predicted": "Thumbs_Up",
+      "correct": true
+    },
+    {
+      "file": "outputs\\current_eval\\gallery\\correct_Pointing_sample_11_Pointing.jpg",
+      "ground_truth": "Pointing",
+      "predicted": "Pointing",
+      "correct": true
+    },
+    {
+      "file": "outputs\\current_eval\\gallery\\correct_OK_sample_12_OK.jpg",
+      "ground_truth": "OK",
+      "predicted": "OK",
+      "correct": true
+    }
+  ],
+  "no_hand_detected": 0,
+  "hand_detection_rate": 1.0,
+  "missing_class_handling": "No hand detected counts as incorrect for ground-truth gesture",
+  "main": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "latency_ms": 14.286666666521342,
+    "fps": 69.9953336451357,
+    "per_class": {
+      "Fist": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "OK": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Open_Hand": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Peace": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Pointing": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      },
+      "Thumbs_Up": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 1
+      }
+    }
+  },
+  "baseline": {
+    "accuracy": 0.16666666666666666,
+    "macro_f1": 0.06666666666666667,
+    "latency_ms": 4.038983333278641,
+    "fps": 247.58705780255124
+  },
+  "hardware": {
+    "platform": "Windows-10-10.0.22000-SP0",
+    "python": "3.11.9",
+    "opencv": "4.11.0",
+    "numpy": "1.26.4"
+  },
+  "comparison_to_cp3": "Original six-illustration results do not establish real webcam accuracy."
+}

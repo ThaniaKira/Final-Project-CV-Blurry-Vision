@@ -50,7 +50,11 @@ def classify_geometry(points):
     elif extended["index"] and not (extended["middle"] or extended["ring"] or extended["pinky"]) and not pinch:
         label="Pointing"
     elif n==0 and thumb_out:
-        label="Thumbs_Up"
+        # In image coordinates y grows downward. A fully extended thumb below
+        # the wrist is a thumbs-down/dislike pose, not a thumbs-up. This is
+        # only a transparent fallback rule; the HaGRID model remains the
+        # correct path for robust multi-gesture recognition.
+        label="Dislike" if p[4, 1] > wrist[1] + .25 * palm else "Thumbs_Up"
     elif n==0 and not thumb_out:
         label="Fist"
     else:

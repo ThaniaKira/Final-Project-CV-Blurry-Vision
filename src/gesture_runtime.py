@@ -22,6 +22,31 @@ CLASSES = ("Open_Hand", "Fist", "Peace", "Thumbs_Up", "Pointing", "OK")
 DEFAULT_WEIGHTS = Path("models/gesture_contour.npz")
 
 
+def landmark_feature_vector(relative_xy: np.ndarray, relative_z: np.ndarray) -> np.ndarray:
+    """Create pose features from real MediaPipe landmarks.
+
+    The original wrist-relative coordinates retain useful pose information, but
+    the added distances are less sensitive to camera translation and small
+    rotations.  This is deliberately deterministic: exactly the same vector is
+    produced at training and live-inference time.
+    """
+    xy = np.asarray(relative_xy, dtype=np.float32)
+    z = np.asarray(relative_z, dtype=np.float32).reshape(21, 1)
+    # Wrist-to-joint radii, hand-bone lengths and fingertip separations encode
+    # finger extension/opening independently of where the hand sits in frame.
+    radii = np.linalg.norm(xy[1:] - xy[0], axis=1)
+    bones = ((0, 1), (1, 2), (2, 3), (3, 4),
+             (0, 5), (5, 6), (6, 7), (7, 8),
+             (0, 9), (9, 10), (10, 11), (11, 12),
+             (0, 13), (13, 14), (14, 15), (15, 16),
+             (0, 17), (17, 18), (18, 19), (19, 20))
+    bone_lengths = np.asarray([np.linalg.norm(xy[a] - xy[b]) for a, b in bones], dtype=np.float32)
+    tips = (4, 8, 12, 16, 20)
+    tip_gaps = np.asarray([np.linalg.norm(xy[a] - xy[b])
+                           for i, a in enumerate(tips) for b in tips[i + 1:]], dtype=np.float32)
+    return np.hstack((xy.ravel(), z.ravel(), radii, bone_lengths, tip_gaps)).astype(np.float32)
+
+
 class BackendUnavailable(RuntimeError):
     pass
 
@@ -97,7 +122,7 @@ class FeatureExtractor:
             palm_span = max(float(np.linalg.norm(xy_pixel[9]-center)), 1.0)
             relative_xy = (xy_pixel-center)/palm_span
             relative_z = ((points[:,2]-points[0,2])*width/palm_span).reshape(-1,1)
-            feature = np.hstack((relative_xy,relative_z)).ravel().astype(np.float32)
+            feature = landmark_feature_vector(relative_xy, relative_z)
             xy = np.clip(points[:,:2]*224,0,223).astype(int)
             x1,y1 = xy.min(axis=0).tolist()
             x2,y2 = xy.max(axis=0).tolist()

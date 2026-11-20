@@ -11,4 +11,4 @@ huggingface_hub==0.25.2
 pydantic==2.10.6
 fastapi==0.112.4
 starlette==0.38.6
-# For Kaggle download separately: python -m pip install kaggle
+kagglehub>=0.3.13,<1

@@ -1,0 +1,27 @@
+MODEL & BACKEND INTEGRITY — PHASE 5 UI/UX ONLY
+=======================================================
+
+Existing uploaded files preserved exactly:
+models/gesture_contour.npz
+SHA-256: 341f7487c6bcb3dd6f3c314f7f40277cfa23595d7de469442c43ab719c9f37a0
+
+src/evaluate.py
+SHA-256: 131b8af62cb73f66487268d3ce360f7304f914c8df5d6f440a0882cd545ffae7
+
+src/geometry_rules.py
+SHA-256: 25e9580b2a612e1564d440161022745c973bdfe187fa957d4499186f6bea10a8
+
+src/gesture_runtime.py
+SHA-256: de5e021beee61b54c927a6bd9e7e3e1d400e8b6f6f7899d8abe6962e848e2957
+
+src/prepare_kaggle.py
+SHA-256: 299b9aa1adff744758fc2089a724546db1e3e9e02737e086dedf9b1e2ff77b66
+
+src/preprocess.py
+SHA-256: 4649ba85003478eda4fda44c5c332050bd7660df38c142c9ed0cb21610e99921
+
+src/train.py
+SHA-256: f308b56931545a76a05d5c3456bb0b6d09156fe9031f056a6593b8dc693c805c
+
+No trained HaGRID weights were present in the uploaded Phase 4 ZIP.
+The unchanged app selects existing trained weights if provided, otherwise MediaPipe rules.

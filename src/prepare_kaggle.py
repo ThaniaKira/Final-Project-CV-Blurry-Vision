@@ -1,9 +1,9 @@
 """Prepare a genuine HaGRID Kaggle subset into subject-disjoint six-class splits.
 
-Kaggle dataset: innominate817/hagrid-sample-30k-384p
+Kaggle dataset: kapitanov/hagrid (official HaGRID release)
 Expected layout (inside archive or extracted directory):
-  hagrid-sample-30k-384p/ann_train_val/{palm,fist,peace,like,one,ok}.json
-  hagrid-sample-30k-384p/hagrid_30k/train_val_{class}/{image_id}.jpg
+  .../ann_train_val/{palm,fist,peace,like,one,ok}.json
+  .../train_val_{class}/{image_id}.jpg
 
 Unlike the 20 original cartoon drawings, these are real hand photographs.
 The code NEVER evaluates/trains on source-identical people across splits.
@@ -25,12 +25,25 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-KAGGLE_SLUG = "innominate817/hagrid-sample-30k-384p"
+KAGGLE_SLUG = "kapitanov/hagrid"
 SOURCE_URL = f"https://www.kaggle.com/datasets/{KAGGLE_SLUG}"
 CLASS_MAP = {
     "palm": "Open_Hand", "fist": "Fist", "peace": "Peace",
     "like": "Thumbs_Up", "one": "Pointing", "ok": "OK",
 }
+# All 33 named HaGRID gestures plus the dataset's background/unknown class.
+# the six app-facing names above for compatibility; the other labels remain
+# readable source labels so the UI can acknowledge, rather than mislabel, them.
+HAGRID_GESTURES = (
+    "call", "dislike", "fist", "four", "grabbing", "grip", "hand_heart",
+    "hand_heart2", "holy", "like", "little_finger", "middle_finger", "mute",
+    "no_gesture", "ok", "one", "palm", "peace", "peace_inverted", "point",
+    "rock", "stop", "stop_inverted", "take_picture", "three", "three2",
+    "three3", "three_gun", "thumb_index", "thumb_index2", "timeout",
+    "two_up", "two_up_inverted", "xsign",
+)
+FULL_CLASS_MAP = {gesture: CLASS_MAP.get(gesture, gesture.replace("_", " ").title())
+                  for gesture in HAGRID_GESTURES}
 SPLITS = ("train", "val", "test")
 
 
@@ -38,22 +51,21 @@ def find_archive(raw: Path) -> Path | None:
     return next(iter(sorted(raw.glob("*.zip"))), None)
 
 
-def download_using_kaggle(raw: Path) -> Path:
+def download_using_kagglehub(raw: Path) -> Path:
+    """Download the full HaGRID image/annotation tree with KaggleHub."""
     raw.mkdir(parents=True, exist_ok=True)
-    print(f"Downloading {KAGGLE_SLUG}. Approx. 1 GB; free disk space required.", flush=True)
+    print(f"Downloading {KAGGLE_SLUG} with KaggleHub; substantial free disk space required.", flush=True)
     try:
-        subprocess.run(["kaggle", "datasets", "download", "-d", KAGGLE_SLUG,
-                        "-p", str(raw), "--force"], check=True)
-    except FileNotFoundError as exc:
-        raise RuntimeError("Kaggle CLI is missing. Install it with: python -m pip install kaggle\n"
-                           "Alternatively, download the dataset ZIP in a browser and run "
-                           "--archive path/to/file.zip") from exc
-    except subprocess.CalledProcessError as exc:
-        raise RuntimeError("Kaggle download failed. Check internet/Kaggle authentication or "
-                           "download the ZIP manually from " + SOURCE_URL) from exc
-    result = find_archive(raw)
-    if result is None:
-        raise RuntimeError(f"No dataset ZIP in {raw}")
+        import kagglehub
+    except ImportError as exc:
+        raise RuntimeError("KaggleHub is missing. Install it with: python -m pip install kagglehub") from exc
+    try:
+        result = Path(kagglehub.dataset_download(KAGGLE_SLUG, output_dir=str(raw)))
+    except Exception as exc:
+        raise RuntimeError("KaggleHub download failed. Check dataset access/authentication or download "
+                           "the archive manually from " + SOURCE_URL) from exc
+    if not result.exists():
+        raise RuntimeError(f"KaggleHub did not return a usable dataset directory: {result}")
     return result
 
 
@@ -132,43 +144,51 @@ def crop_hand(raw_bytes, normalized_bbox, pad_ratio=.30):
     return cv2.resize(crop, None, fx=scale, fy=scale) if scale < 1 else crop
 
 
-def prepare(archive=None, source_dir=None, output="data/hagrid_real", max_per_class=400, seed=42):
+def prepare(archive=None, source_dir=None, output="data/hagrid_real", max_per_class=400, seed=42,
+            all_gestures=False):
     if bool(archive) == bool(source_dir):
         raise ValueError("Choose exactly one of --archive OR --source-dir")
     source = ArchiveReader(Path(archive) if archive else None, Path(source_dir) if source_dir else None)
     rng = random.Random(seed)
+    class_map = FULL_CLASS_MAP if all_gestures else CLASS_MAP
     records, missing = [], []
     try:
-        for hagrid_class, label in CLASS_MAP.items():
+        for hagrid_class, label in class_map.items():
             ann_name = source.match(f"/ann_train_val/{hagrid_class}.json")
             if ann_name is None:
                 ann_name = source.match(f"ann_train_val/{hagrid_class}.json")
-            if ann_name is None:
+            # Official HaGRID layout: hagrid_annotations/{train,val,test}/<class>.json.
+            official_annotations = [name for name in source.names
+                                    if name.endswith(f"/{hagrid_class}.json")
+                                    and "/hagrid_annotations/" in name]
+            annotation_names = [ann_name] if ann_name else official_annotations
+            if not annotation_names:
                 missing.append(f"ann_train_val/{hagrid_class}.json")
                 continue
-            annotation_dict = json.loads(source.read(ann_name))
-            image_ends = f"/train_val_{hagrid_class}/"
-            image_lookup = {Path(name).stem: name for name in source.names if image_ends in name and name.lower().endswith((".jpg", ".jpeg", ".png"))}
+            image_ends = f"/train_val_{hagrid_class}/" if ann_name else f"/hagrid_dataset/{hagrid_class}/"
+            image_lookup = {Path(name).stem: name for name in source.names
+                            if image_ends in name and name.lower().endswith((".jpg", ".jpeg", ".png"))}
             candidates = []
-            for photo_id, annotation in annotation_dict.items():
-                if photo_id not in image_lookup:
-                    continue
-                bbox = choose_bbox(annotation, hagrid_class)
-                if bbox is None:
-                    continue
-                person = annotation.get("user_id")
-                if not person:
-                    # Without subjects, no honest source-disjoint evaluation.
-                    raise RuntimeError(f"Missing user_id annotation for {photo_id}; cannot safely split by subject")
-                candidates.append({"id": photo_id, "user_id": str(person), "class": label,
-                                   "hagrid_class": hagrid_class, "bbox": bbox, "source": image_lookup[photo_id]})
+            for name in annotation_names:
+                annotation_dict = json.loads(source.read(name))
+                for photo_id, annotation in annotation_dict.items():
+                    if photo_id not in image_lookup:
+                        continue
+                    bbox = choose_bbox(annotation, hagrid_class)
+                    if bbox is None:
+                        continue
+                    person = annotation.get("user_id")
+                    if not person:
+                        raise RuntimeError(f"Missing user_id annotation for {photo_id}; cannot safely split by subject")
+                    candidates.append({"id": photo_id, "user_id": str(person), "class": label,
+                                       "hagrid_class": hagrid_class, "bbox": bbox, "source": image_lookup[photo_id]})
             rng.shuffle(candidates)
             selected = candidates if max_per_class == 0 else candidates[:max_per_class]
             records += selected
             print(f"{hagrid_class:6s} -> {label:10s}: {len(selected)} / {len(candidates)} usable annotated images")
         if missing:
             raise RuntimeError("HaGRID archive structure mismatch; missing " + ", ".join(missing))
-        if any(sum(r["class"] == c for r in records) < 20 for c in CLASS_MAP.values()):
+        if any(sum(r["class"] == c for r in records) < 20 for c in class_map.values()):
             raise RuntimeError("Not enough images per class to train/evaluate; use a higher --max-per-class")
         assignment = stable_split_people(records, seed)
         output = Path(output)
@@ -192,15 +212,16 @@ def prepare(archive=None, source_dir=None, output="data/hagrid_real", max_per_cl
                              "image_id": row["id"], "user_id":row["user_id"],
                              "filename": str(dest).replace("\\", "/")})
         for split in SPLITS:
-            for label in CLASS_MAP.values():
+            for label in class_map.values():
                 if counts[(split, label)] < 5:
                     raise RuntimeError(f"Not enough {label} in {split}: {counts[(split,label)]}; increase --max-per-class")
         with (output / "manifest.csv").open("w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=list(manifest[0])); writer.writeheader(); writer.writerows(manifest)
         info = {"source":SOURCE_URL,"dataset":KAGGLE_SLUG,"source_license":"CC BY-SA 4.0 (verify the Kaggle dataset terms)",
                 "prepared_n":len(manifest),"sample_limit_per_source_class":max_per_class,
-                "split_method":"Source subject (HaGRID user_id); globally disjoint across all six classes",
-                "split_seed":seed,"counts":{split:{label:counts[(split,label)] for label in CLASS_MAP.values()} for split in SPLITS},
+                "split_method":"Source subject (HaGRID user_id); globally disjoint across all selected classes",
+                "all_hagrid_gestures":bool(all_gestures),"class_labels":list(class_map.values()),
+                "split_seed":seed,"counts":{split:{label:counts[(split,label)] for label in class_map.values()} for split in SPLITS},
                 "bbox_crop":"Square bbox with 30% padding, capped at 360px; MediaPipe real-hand detection",
                 "warning":"The original 20 illustrated samples are NOT mixed into this dataset."}
         (output / "data_card.json").write_text(json.dumps(info, indent=2), encoding="utf-8")
@@ -215,10 +236,13 @@ if __name__ == "__main__":
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--archive", help="Path to downloaded Kaggle ZIP")
     g.add_argument("--source-dir", help="Extracted HaGRID dataset directory")
-    g.add_argument("--download", action="store_true", help="Download Kaggle HaGRID ZIP through Kaggle CLI")
-    p.add_argument("--max-per-class", type=int, default=400, help="0=all matched images; default 400/class")
+    g.add_argument("--download", action="store_true", help="Download official HaGRID through KaggleHub")
+    p.add_argument("--max-per-class", type=int, default=800, help="0=all matched images; default 800/class")
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--all-gestures", action="store_true", help="Prepare all 34 HaGRID classes, including No Gesture")
     p.add_argument("--output", default="data/hagrid_real")
     args = p.parse_args()
-    archive = args.archive or (str(download_using_kaggle(Path("data/kaggle_raw"))) if args.download else None)
-    prepare(archive=archive,source_dir=args.source_dir,output=args.output,max_per_class=args.max_per_class,seed=args.seed)
+    downloaded_dir = str(download_using_kagglehub(Path("data/kaggle_raw"))) if args.download else None
+    prepare(archive=args.archive,source_dir=args.source_dir or downloaded_dir,
+            output=args.output,max_per_class=args.max_per_class,seed=args.seed,
+            all_gestures=args.all_gestures)

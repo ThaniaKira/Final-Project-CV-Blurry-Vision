@@ -1,3 +1,22 @@
+# BLURRY VISION · PHASE 5 WEBSITE (UI/UX UPDATE)
+
+**New navigation:** Home at `/`, Recognition Studio at **`/studio` (a separate page)**, and Gesture Guide at `/guide`.
+
+**Run in VS Code** (use Python 3.11 and the pinned requirements):
+
+```powershell
+python -m pip install -r requirements.txt
+python src/app.py
+```
+
+Open http://127.0.0.1:7860/. The original training and inference code, model weights and evaluation scripts have been **preserved unchanged**. The new web interface calls the original recognizer and renderer through `src/site.py`.
+
+**Model status:** The uploaded ZIP includes `models/gesture_contour.npz` but does not include `models/gesture_hagrid_mediapipe.npz`. As before, the site uses the existing MediaPipe geometry-rules fallback until genuine trained weights are placed at `models/gesture_hagrid_mediapipe.npz`. If your Kaggle-trained model exists elsewhere, use `python src/app.py --weights path/to/your_existing_file.npz`.
+
+**Complete interface instructions and changes:** `docs/PHASE5_UI_UX_README.md`. Screenshots: `outputs/final_ui/`.
+
+---
+
 # BLURRY VISION — ENHANCED PHASE 4 (REAL HAND / KAGGLE WORKFLOW)
 
 **Start here:** `START_HERE_WINDOWS.txt` then `docs/KAGGLE_TRAINING.md`.
@@ -9,10 +28,9 @@ python src/app.py
 
 **To use an actual trained Kaggle HaGRID MediaPipe + Random Forest model:**
 ```powershell
-python -m pip install kaggle
-python src/prepare_kaggle.py --download --max-per-class 400
-python src/train.py --backend mediapipe --data data/hagrid_real --output models/gesture_hagrid_mediapipe.npz
-python src/evaluate.py --split test --data data/hagrid_real --weights models/gesture_hagrid_mediapipe.npz --output outputs/hagrid_eval
+python src/prepare_kaggle.py --download --all-gestures --max-per-class 800
+python src/train.py --backend mediapipe --data data/hagrid_real --output models/gesture_hagrid_all_mediapipe.npz
+python src/evaluate.py --split test --data data/hagrid_real --weights models/gesture_hagrid_all_mediapipe.npz --output outputs/hagrid_eval
 python src/app.py
 ```
 **Not included:** 1 GB Kaggle real images or new trained weights. Accuracy target 80–90% is not guaranteed; report only the held-out accuracy after the commands run. Original six illustrated test images are kept for comparisons, not as real-world evidence.
