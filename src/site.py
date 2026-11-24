@@ -18,8 +18,8 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.geometry_rules import GeometryRecognizer
-from src.gesture_runtime import BackendUnavailable, GestureRecognizer, draw_result
+from src.dual_models import DualRecognizer
+from src.gesture_runtime import BackendUnavailable, draw_result
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -28,6 +28,9 @@ DEFAULT_WEIGHTS = ROOT / "models" / "gesture_hagrid_mediapipe.npz"
 WEIGHTS = Path(os.environ.get("BLURRY_VISION_WEIGHTS", str(DEFAULT_WEIGHTS)))
 if not WEIGHTS.is_absolute():
     WEIGHTS = (ROOT / WEIGHTS).resolve()
+NUMBER_WEIGHTS = Path(os.environ.get("BLURRY_VISION_NUMBER_WEIGHTS", str(ROOT / "models" / "numbers_hagrid_mediapipe.npz")))
+if not NUMBER_WEIGHTS.is_absolute():
+    NUMBER_WEIGHTS = (ROOT / NUMBER_WEIGHTS).resolve()
 LOCK = Lock()  # Reuse and serialize access to the same MediaPipe detector instance.
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_IMAGE_PIXELS = 16_000_000
@@ -39,9 +42,7 @@ def mode():
 
 @lru_cache(maxsize=1)
 def recognizer():
-    if WEIGHTS.exists():
-        return GestureRecognizer(WEIGHTS)
-    return GeometryRecognizer()
+    return DualRecognizer(WEIGHTS, NUMBER_WEIGHTS)
 
 
 def status():
@@ -54,7 +55,7 @@ def status():
         except (OSError, KeyError, ValueError):
             backend = "unknown"
     if backend == "mediapipe":
-        label = "Saved MediaPipe + Random Forest"
+        label = "Saved MediaPipe + HaGRID ExtraTrees"
         note = "Loaded the existing MediaPipe model weights, unchanged. Evaluate accuracy separately on held-out real photos."
     elif backend == "contour":
         label = "Saved Contour + Random Forest"
@@ -67,6 +68,13 @@ def status():
         note = "No trained MediaPipe weights were found in this ZIP. The existing geometric-rules fallback is active."
     return {
         "mode": "trained" if trained else "rules",
+        "number_model": {
+            "mode": "trained" if NUMBER_WEIGHTS.exists() else "rules",
+            "weights_present": NUMBER_WEIGHTS.exists(),
+            "model_path": NUMBER_WEIGHTS.relative_to(ROOT).as_posix() if NUMBER_WEIGHTS.is_relative_to(ROOT) else str(NUMBER_WEIGHTS),
+            "note": ("HaGRID number-classifier weights present; verify held-out test results." if NUMBER_WEIGHTS.exists() else
+                     "Untrained finger-counting rules; not a HaGRID model and no measured accuracy claim."),
+        },
         "backend": backend,
         "label": label,
         "has_trained_weights": trained,
@@ -96,6 +104,12 @@ async def guide():
     return FileResponse(WEB / "templates" / "guide.html")
 
 
+@app.get("/play", include_in_schema=False)
+@app.get("/play/", include_in_schema=False)
+async def play_and_learn():
+    return FileResponse(WEB / "templates" / "play.html")
+
+
 @app.get("/api/status")
 async def api_status():
     return status()
@@ -103,6 +117,17 @@ async def api_status():
 
 @app.post("/api/analyze")
 async def analyze(image: UploadFile = File(...)):
+    # Preserve the original six-gesture website contract and appearance.
+    return await _analyze(image, numeric_only=False)
+
+
+@app.post("/api/analyze/numbers")
+async def analyze_numbers(image: UploadFile = File(...)):
+    # Optional separate numeric API; does not change HTML/CSS/JS of the site.
+    return await _analyze(image, numeric_only=True)
+
+
+async def _analyze(image: UploadFile, numeric_only=False):
     # Only pixels enter the existing pipeline; uploaded media is not written to disk.
     payload = await image.read(MAX_UPLOAD_BYTES + 1)
     if not payload:
@@ -122,7 +147,9 @@ async def analyze(image: UploadFile = File(...)):
 
     try:
         with LOCK:
-            prediction = recognizer().predict(frame)
+            core_prediction, number_prediction = recognizer().predict_both(frame)
+            detection_attempt = getattr(recognizer().extractor, "last_detection_attempt", "unknown")
+            prediction = number_prediction if numeric_only else core_prediction
             rendered = draw_result(frame, prediction)
     except (ImportError, ModuleNotFoundError, BackendUnavailable) as exc:
         raise HTTPException(status_code=503, detail="The active model requires MediaPipe. Install requirements.txt and restart the app.") from exc
@@ -134,11 +161,18 @@ async def analyze(image: UploadFile = File(...)):
     if not ok:
         raise HTTPException(status_code=500, detail="Unable to render recognition output.")
     details = prediction.to_dict()
-    if not WEIGHTS.exists():
+    details["detection_attempt"] = detection_attempt
+    details["number_prediction"] = {
+        "gesture": number_prediction.label,
+        "number": int(number_prediction.label.split("_")[1]) if number_prediction.label in {f"Number_{i}" for i in range(6)} else None,
+        "confidence": number_prediction.confidence if NUMBER_WEIGHTS.exists() else None,
+        "method": "trained" if NUMBER_WEIGHTS.exists() else "untrained_geometry_rules",
+    }
+    if not (NUMBER_WEIGHTS.exists() if numeric_only else WEIGHTS.exists()):
         details["confidence"] = None
-        details["model_status"] = "Untrained geometric-rules fallback; no calibrated confidence or Kaggle accuracy claim."
+        details["model_status"] = "Untrained MediaPipe geometric rules; no HaGRID accuracy claim."
     else:
-        details["model_status"] = "Existing saved model; compare only with the matching evaluation run."
+        details["model_status"] = "Saved HaGRID weights loaded; consult separate held-out evaluation for this head."
     return JSONResponse({
         "image": "data:image/png;base64," + base64.b64encode(png.tobytes()).decode("ascii"),
         "details": details,
