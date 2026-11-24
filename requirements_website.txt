@@ -1,0 +1,10 @@
+# For Python 3.11 Windows local website. A separate virtual environment is recommended.
+numpy==1.26.4
+opencv-contrib-python==4.10.0.84
+mediapipe==0.10.14
+protobuf==4.25.9
+scikit-learn==1.5.2
+fastapi==0.112.4
+starlette==0.38.6
+uvicorn>=0.30,<0.35
+python-multipart>=0.0.20

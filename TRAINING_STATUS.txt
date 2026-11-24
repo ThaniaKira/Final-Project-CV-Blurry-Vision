@@ -1,0 +1,20 @@
+DUAL MODEL STATUS -- 23 November 2026
+
+WHAT IS INCLUDED
+- Original website Home / Studio / Guide: unchanged HTML/CSS/JS and images.
+- Original models/gesture_contour.npz: present, unchanged and verified on 6
+  small illustrated test PNGs (6/6 correct; NOT real-world accuracy).
+- New dual-model inference engine: implemented and tested at code/API level.
+- New cloud-friendly HaGRID training program: included and syntax checked.
+- New number-recognition rule fallback: implemented, NOT machine-learned.
+
+WHAT IS NOT INCLUDED
+- models/gesture_hagrid_mediapipe.npz -- requires actual HaGRID images.
+- models/numbers_hagrid_mediapipe.npz -- requires actual HaGRID images.
+- Any HaGRID held-out accuracy result.
+
+The HaGRID dataset was not in the uploaded ZIP, and this run had no access to
+its binary images. No HaGRID training was performed. Do not claim otherwise.
+
+See docs/DUAL_MODEL_README.md for remote training, output paths, evaluation,
+and optional number-based children's learning game proposal.
