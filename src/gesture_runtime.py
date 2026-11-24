@@ -59,6 +59,7 @@ class FeatureExtractor:
             raise ValueError("backend must be 'contour' or 'mediapipe'")
         self.backend = backend
         self.hands = None
+        self.last_detection_attempt = "not_attempted"
         if backend == "mediapipe":
             try:
                 import mediapipe as mp
@@ -80,21 +81,48 @@ class FeatureExtractor:
         if self.hands is not None:
             self.hands.close()
 
-    def _detect_hand_landmarks(self, frame_bgr):
-        """Run a normal pass, then a low-light-safe pass if necessary.
-
-        The second pass changes only luminance, so any coordinates still refer
-        exactly to the source frame.  It avoids the misleading alternative of
-        drawing estimated fingers when MediaPipe has not detected a real hand.
-        """
-        result = self.hands.process(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
-        if result.multi_hand_landmarks:
-            return result
+    @staticmethod
+    def _contrast_frame(frame_bgr):
+        """Improve local luminance without changing geometry or color channels."""
         lab = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2LAB)
         light, a, b = cv2.split(lab)
         light = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(light)
-        enhanced = cv2.cvtColor(cv2.merge((light, a, b)), cv2.COLOR_LAB2BGR)
-        return self.hands.process(cv2.cvtColor(enhanced, cv2.COLOR_BGR2RGB))
+        return cv2.cvtColor(cv2.merge((light, a, b)), cv2.COLOR_LAB2BGR)
+
+    def _detect_hand_landmarks(self, frame_bgr):
+        """Three progressively more forgiving *real* MediaPipe detector passes.
+
+        A close-up fist may be difficult for the palm detector. Padding adds
+        context without inventing hand keypoints. Coordinates from that pass
+        are mapped back to the original image before classification.
+        Returns (MediaPipe result, padding_pixels, processed_image_shape).
+        """
+        height, width = frame_bgr.shape[:2]
+        attempts = [("original", frame_bgr, 0)]
+        # Only run fallbacks when the preceding pass actually failed.
+        for name, img, pad in attempts:
+            result = self.hands.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            if result.multi_hand_landmarks:
+                self.last_detection_attempt = name
+                return result, pad, img.shape[:2]
+
+        enhanced = self._contrast_frame(frame_bgr)
+        result = self.hands.process(cv2.cvtColor(enhanced, cv2.COLOR_BGR2RGB))
+        if result.multi_hand_landmarks:
+            self.last_detection_attempt = "contrast"
+            return result, 0, enhanced.shape[:2]
+
+        pad = max(16, int(0.17 * max(height, width)))
+        # Last-resort perspective: a too-large hand appears smaller within the frame.
+        padded = cv2.copyMakeBorder(enhanced, pad, pad, pad, pad,
+                                    cv2.BORDER_CONSTANT, value=(20, 20, 25))
+        result = self.hands.process(cv2.cvtColor(padded, cv2.COLOR_BGR2RGB))
+        if result.multi_hand_landmarks:
+            self.last_detection_attempt = "padded_contrast"
+            return result, pad, padded.shape[:2]
+
+        self.last_detection_attempt = "none"
+        return result, pad, padded.shape[:2]
 
     def extract(self, image_bgr):
         """Return (feature or None, box or None, points or None, blur_score).
@@ -111,10 +139,16 @@ class FeatureExtractor:
             blur_score = compute_blur_score(cv2.resize(image_bgr, (224, 224)))
             scale = min(1.0, 960.0/max(height,width))
             frame = cv2.resize(image_bgr, None, fx=scale, fy=scale) if scale<1 else image_bgr
-            result = self._detect_hand_landmarks(frame)
+            result, pad, input_shape = self._detect_hand_landmarks(frame)
             if not result.multi_hand_landmarks:
                 return None, None, None, blur_score
             points = np.asarray([[p.x,p.y,p.z] for p in result.multi_hand_landmarks[0].landmark], dtype=np.float32)
+            if pad:
+                padded_h, padded_w = input_shape
+                frame_h, frame_w = frame.shape[:2]
+                points[:, 0] = (points[:, 0] * padded_w - pad) / frame_w
+                points[:, 1] = (points[:, 1] * padded_h - pad) / frame_h
+                points[:, 2] *= padded_w / frame_w
             # Use pixel coordinates before normalizing. Raw MediaPipe x/y values
             # represent relative image width/height, not equal-length units.
             xy_pixel = points[:,:2]*np.asarray([width,height],dtype=np.float32)

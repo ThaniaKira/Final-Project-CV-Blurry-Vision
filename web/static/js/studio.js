@@ -201,14 +201,14 @@
       const d = body.details || {};
       const label = String(d.gesture || 'Unknown').replace(/_/g, ' ');
       $('gestureLabel').textContent = label;
-      $('confidence').textContent = (typeof d.confidence === 'number' && body.status?.mode === 'trained')
+      $('confidence').textContent = (d.hand_count > 0 && typeof d.confidence === 'number' && body.status?.mode === 'trained')
         ? `${(d.confidence * 100).toFixed(1)}%*` : 'N/A';
       $('timeMetric').textContent = (typeof d.processing_ms === 'number') ? `${d.processing_ms.toFixed(1)} ms` : '—';
       $('handMetric').textContent = String(d.hand_count ?? '—');
       setState('SCAN COMPLETE', 'ready');
       const isMissing = /no hand/i.test(label);
       say(isMissing
-        ? 'No hand landmarks found. Improve lighting and try again.'
+        ? 'No hand landmarks found. Move your hand farther back, include your wrist, face your palm toward the camera, and improve front lighting. This is a detection failure, not a gesture classification.'
         : (body.status?.mode === 'trained'
             ? 'Recognition completed using your existing trained model. *Score is not a calibrated probability.'
             : 'Recognition completed using existing geometric rules; no trained confidence score is available.'));
