@@ -1,0 +1,300 @@
+{
+  "metadata": {
+    "dataset_source": "https://huggingface.co/datasets/cj-mills/hagrid-sample-30k-384p",
+    "dataset_version": "HaGRID 30K 384p sample",
+    "gesture_head": "numbers",
+    "feature_schema": "landmark-v2",
+    "split_by": "original HaGRID user_id, globally subject-disjoint",
+    "class_source_map": {
+      "fist": "Number_0",
+      "one": "Number_1",
+      "peace": "Number_2",
+      "two_up": "Number_2",
+      "three": "Number_3",
+      "three2": "Number_3",
+      "four": "Number_4",
+      "palm": "Number_5"
+    },
+    "seed": 42,
+    "train_detected": 1272,
+    "train_images": 1400,
+    "selected_algorithm": "ExtraTreesClassifier",
+    "validation_accuracy_all_images": 0.9249146757679181,
+    "validation_macro_f1_all_images": 0.9493454195744953,
+    "test_accuracy_all_images": 0.8859934853420195,
+    "test_macro_f1_all_images": 0.9249871641724884,
+    "caution": "Only measured results; children webcam performance requires separate testing."
+  },
+  "validation": {
+    "n_images": 293,
+    "hands_detected": 275,
+    "accuracy_all_images": 0.9249146757679181,
+    "macro_f1_all_images": 0.9493454195744953,
+    "per_class_report": {
+      "Number_0": {
+        "precision": 1.0,
+        "recall": 0.7894736842105263,
+        "f1-score": 0.8823529411764706,
+        "support": 38.0
+      },
+      "Number_1": {
+        "precision": 1.0,
+        "recall": 0.9090909090909091,
+        "f1-score": 0.9523809523809523,
+        "support": 44.0
+      },
+      "Number_2": {
+        "precision": 0.9710144927536232,
+        "recall": 0.9852941176470589,
+        "f1-score": 0.9781021897810219,
+        "support": 68.0
+      },
+      "Number_3": {
+        "precision": 1.0,
+        "recall": 0.8970588235294118,
+        "f1-score": 0.9457364341085271,
+        "support": 68.0
+      },
+      "Number_4": {
+        "precision": 0.9375,
+        "recall": 0.9375,
+        "f1-score": 0.9375,
+        "support": 32.0
+      },
+      "Number_5": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 43.0
+      },
+      "micro avg": {
+        "precision": 0.9854545454545455,
+        "recall": 0.9249146757679181,
+        "f1-score": 0.954225352112676,
+        "support": 293.0
+      },
+      "macro avg": {
+        "precision": 0.9847524154589372,
+        "recall": 0.9197362557463177,
+        "f1-score": 0.9493454195744953,
+        "support": 293.0
+      },
+      "weighted avg": {
+        "precision": 0.9864470495127863,
+        "recall": 0.9249146757679181,
+        "f1-score": 0.9530894201158946,
+        "support": 293.0
+      }
+    },
+    "confusion_labels": [
+      "Number_0",
+      "Number_1",
+      "Number_2",
+      "Number_3",
+      "Number_4",
+      "Number_5",
+      "No hand detected"
+    ],
+    "confusion_matrix": [
+      [
+        30,
+        0,
+        0,
+        0,
+        0,
+        0,
+        8
+      ],
+      [
+        0,
+        40,
+        2,
+        0,
+        0,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        67,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        61,
+        2,
+        0,
+        5
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        30,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        43,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "test": {
+    "n_images": 307,
+    "hands_detected": 284,
+    "accuracy_all_images": 0.8859934853420195,
+    "macro_f1_all_images": 0.9249871641724884,
+    "per_class_report": {
+      "Number_0": {
+        "precision": 0.9411764705882353,
+        "recall": 0.9142857142857143,
+        "f1-score": 0.927536231884058,
+        "support": 35.0
+      },
+      "Number_1": {
+        "precision": 0.918918918918919,
+        "recall": 0.8947368421052632,
+        "f1-score": 0.9066666666666666,
+        "support": 38.0
+      },
+      "Number_2": {
+        "precision": 0.927536231884058,
+        "recall": 0.8533333333333334,
+        "f1-score": 0.8888888888888888,
+        "support": 75.0
+      },
+      "Number_3": {
+        "precision": 1.0,
+        "recall": 0.8607594936708861,
+        "f1-score": 0.9251700680272109,
+        "support": 79.0
+      },
+      "Number_4": {
+        "precision": 0.975609756097561,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9302325581395349,
+        "support": 45.0
+      },
+      "Number_5": {
+        "precision": 0.9714285714285714,
+        "recall": 0.9714285714285714,
+        "f1-score": 0.9714285714285714,
+        "support": 35.0
+      },
+      "micro avg": {
+        "precision": 0.9577464788732394,
+        "recall": 0.8859934853420195,
+        "f1-score": 0.9204737732656514,
+        "support": 307.0
+      },
+      "macro avg": {
+        "precision": 0.9557783248195575,
+        "recall": 0.897238807285443,
+        "f1-score": 0.9249871641724884,
+        "support": 307.0
+      },
+      "weighted avg": {
+        "precision": 0.958722318583719,
+        "recall": 0.8859934853420195,
+        "f1-score": 0.9203018521380155,
+        "support": 307.0
+      }
+    },
+    "confusion_labels": [
+      "Number_0",
+      "Number_1",
+      "Number_2",
+      "Number_3",
+      "Number_4",
+      "Number_5",
+      "No hand detected"
+    ],
+    "confusion_matrix": [
+      [
+        32,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        34,
+        1,
+        0,
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        3,
+        64,
+        0,
+        0,
+        0,
+        8
+      ],
+      [
+        0,
+        0,
+        4,
+        68,
+        1,
+        0,
+        6
+      ],
+      [
+        2,
+        0,
+        0,
+        0,
+        40,
+        1,
+        2
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        34,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  }
+}

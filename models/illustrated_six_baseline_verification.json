@@ -1,0 +1,45 @@
+{
+  "scope": "six existing illustrated holdout PNGs, not real HaGRID webcam photos",
+  "n_samples": 6,
+  "n_correct": 6,
+  "accuracy": 1.0,
+  "samples": [
+    {
+      "file": "data/test/Fist/sample_14_Fist.png",
+      "ground_truth": "Fist",
+      "prediction": "Fist",
+      "correct": true
+    },
+    {
+      "file": "data/test/OK/sample_12_OK.png",
+      "ground_truth": "OK",
+      "prediction": "OK",
+      "correct": true
+    },
+    {
+      "file": "data/test/Open_Hand/sample_13_Open_Hand.png",
+      "ground_truth": "Open_Hand",
+      "prediction": "Open_Hand",
+      "correct": true
+    },
+    {
+      "file": "data/test/Peace/sample_09_Peace.png",
+      "ground_truth": "Peace",
+      "prediction": "Peace",
+      "correct": true
+    },
+    {
+      "file": "data/test/Pointing/sample_11_Pointing.png",
+      "ground_truth": "Pointing",
+      "prediction": "Pointing",
+      "correct": true
+    },
+    {
+      "file": "data/test/Thumbs_Up/sample_10_Thumbs_Up.png",
+      "ground_truth": "Thumbs_Up",
+      "prediction": "Thumbs_Up",
+      "correct": true
+    }
+  ],
+  "warning": "This is not an independent real-world accuracy claim. No new HaGRID-trained weights are present."
+}
