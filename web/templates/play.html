@@ -2,53 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Play & Learn with Blurry Vision: a webcam counting game using real hand gestures 1 to 5.">
+  <meta name="description" content="Four live hand-gesture learning games for children: finger counting, copy the pose, finger math, and memory trail.">
   <title>Play & Learn — Blurry Vision</title>
   <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/css/site.css">
   <link rel="stylesheet" href="/static/css/play.css">
 </head>
 <body class="page-play">
- <div class="site-atmosphere" aria-hidden="true"></div>
- <header class="site-header">
-   <a class="brand" href="/" aria-label="Blurry Vision home"><span class="brand-mark"><span></span><span></span><span></span><span></span></span><span>BLURRY <em>VISION</em></span></a>
-   <nav class="site-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/studio">Recognition Studio</a><a href="/guide">Gesture Guide</a><a href="/play" class="active" aria-current="page">Play & Learn</a></nav>
-   <a class="nav-action" href="/studio">OPEN STUDIO <span aria-hidden="true">↗</span></a>
-   <button class="mobile-menu" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span><span></span></span></button>
- </header>
- <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" hidden><a href="/">Home</a><a href="/studio">Recognition Studio</a><a href="/guide">Gesture Guide</a><a href="/play" class="active">Play & Learn</a></nav>
- <main class="play-main">
-   <div class="play-top"><div><span class="overline"><span class="live-dot"></span> LEARN BY DOING / GAME 01</span><h1>SHOW ME <span>THE NUMBER.</span></h1><p>Look at the number, show that many fingers to the camera, and collect all five stars. Every correct answer uses your trained hand-gesture model.</p></div>
-     <div class="play-stats" aria-live="polite"><div><small>STARS EARNED</small><strong id="stars">0 <span>/ 5</span></strong></div><div><small>ROUND</small><strong id="round">1 <span>/ 5</span></strong></div></div>
-   </div>
-   <div class="play-layout">
-     <section class="play-target" aria-labelledby="numberTitle">
-       <div class="play-kicker">01 / YOUR CHALLENGE <span>HAND COUNTING</span></div>
-       <h2 id="numberTitle">HOW MANY FINGERS?</h2>
-       <div class="number-orbit" aria-live="polite"><span id="targetNumber">3</span></div>
-       <p class="play-prompt" id="promptText">Show <strong>3 fingers</strong> and hold your hand steady.</p>
-       <div class="progress-stars" id="progressStars" aria-label="Five round progress"><span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span></div>
-       <div id="gameFeedback" class="game-feedback" role="status" aria-live="polite">Ready to play! Start your camera or choose a photo.</div>
-       <div class="play-controls"><button type="button" class="btn btn-primary" id="checkGesture" disabled>CHECK MY FINGERS <span aria-hidden="true">↗</span></button><button type="button" class="btn btn-outline" id="newGame">NEW GAME <span aria-hidden="true">↻</span></button></div>
-     </section>
-     <section class="play-camera-section" aria-label="Webcam or uploaded hand photo">
-       <div class="play-kicker">02 / CAMERA VISION <span id="cameraState">STANDBY</span></div>
-       <div class="play-viewport">
-         <div class="view-corner tl"></div><div class="view-corner tr"></div><div class="view-corner bl"></div><div class="view-corner br"></div>
-         <video id="playVideo" autoplay playsinline muted hidden aria-label="Live camera showing your hand"></video>
-         <img id="playPreview" alt="Your uploaded hand photo" hidden>
-         <div class="play-camera-empty" id="cameraPlaceholder"><span class="play-camera-symbol">◉</span><strong>YOUR HAND GOES HERE</strong><small>Keep your entire hand and wrist visible</small></div>
-         <div class="play-overlay" id="cameraOverlay" hidden>CHECKING YOUR HAND…</div>
-       </div>
-       <div class="play-camera-actions"><button type="button" class="play-secondary" id="startPlayCamera">◉ &nbsp; START CAMERA</button><button type="button" class="play-secondary" id="stopPlayCamera" disabled>■ &nbsp; STOP CAMERA</button></div>
-       <div class="play-upload"><label for="playImage">OR CHOOSE A HAND PHOTO</label><input id="playImage" type="file" accept="image/png,image/jpeg,image/webp"></div>
-       <div class="play-live"><label><input id="autoScan" type="checkbox"> Automatically check while camera is on</label><small>Two matching checks are required for auto-play. One clear check works with the button.</small></div>
-       <div class="play-reading"><span>MODEL READING</span><strong id="lastReading">No scan yet</strong><small id="scoreNote">Classifier vote scores are not calibrated probabilities.</small></div>
-     </section>
-   </div>
-   <div class="play-explainer"><div><strong>BEST CAMERA SETUP</strong><p>Use bright light from in front of you, move your hand farther from the lens, show your palm and wrist, and hold still before checking.</p></div><div><strong>WHAT THE GAME CHECKS</strong><p>Number model: 1–5 finger poses, with the same HaGRID-trained weights as your project. Missed hand detections do not count as wrong answers.</p></div><div><strong>PRIVACY</strong><p>Photos are processed by the website's local server and are not saved by this game. A parent or teacher can help younger children use the camera.</p></div></div>
- </main>
- <footer class="site-footer"><span class="footer-brand">BLURRY <em>VISION</em> <small>© 2026</small></span><span>MADE FOR LEARNING · TEAM BLURRY VISION</span><div><a href="/studio">Studio</a><a href="/guide">Guide</a></div></footer>
- <script src="/static/js/site.js" defer></script><script src="/static/js/play.js" defer></script>
+  <div class="site-atmosphere" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Blurry Vision home"><span class="brand-mark"><span></span><span></span><span></span><span></span></span><span>BLURRY <em>VISION</em></span></a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/studio">Recognition Studio</a><a href="/guide">Gesture Guide</a><a href="/play" class="active" aria-current="page">Play & Learn</a></nav>
+    <a class="nav-action" href="/studio">OPEN STUDIO <span aria-hidden="true">↗</span></a>
+    <button class="mobile-menu" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span><span></span></button>
+  </header>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" hidden><a href="/">Home</a><a href="/studio">Recognition Studio</a><a href="/guide">Gesture Guide</a><a href="/play" class="active">Play & Learn</a></nav>
+  <main class="play-main">
+    <div class="play-top">
+      <div><span class="overline"><span class="live-dot"></span> HANDS-ON LEARNING / FOUR LIVE GAMES</span><h1>PLAY. LEARN.<br><span>SHINE.</span></h1><p>Choose a game, start the camera once, then answer with your hands. No pictures to capture and no analyze button to click. Listen as each number is spoken aloud!</p></div>
+      <div class="play-status-card"><span class="status-dot"></span><div><strong>WEBCAM-POWERED</strong><small>Uses your actual HaGRID-trained models<br>through the local Blurry Vision server</small></div></div>
+    </div>
+    <section class="game-pick" aria-labelledby="chooseGameTitle">
+      <div class="pick-heading"><span class="overline">/ PICK YOUR ADVENTURE</span><h2 id="chooseGameTitle">WHICH GAME TODAY?</h2></div>
+      <div class="game-grid" role="group" aria-label="Choose a game">
+        <button type="button" class="game-card active" data-game="count" aria-pressed="true"><span class="game-icon" aria-hidden="true">✋</span><span class="game-name">COUNT & SHINE</span><span class="game-description">Show numbers 1–5 and collect stars</span><span class="game-chip">NUMBER MODEL</span></button>
+        <button type="button" class="game-card" data-game="match" aria-pressed="false"><span class="game-icon" aria-hidden="true">✌️</span><span class="game-name">COPY THE POSE</span><span class="game-description">Make six hand signs just like the picture</span><span class="game-chip">SIX-GESTURE MODEL</span></button>
+        <button type="button" class="game-card" data-game="math" aria-pressed="false"><span class="game-icon" aria-hidden="true">✦</span><span class="game-name">FINGER MATH</span><span class="game-description">Solve tiny sums by showing fingers</span><span class="game-chip">NUMBER MODEL</span></button>
+        <button type="button" class="game-card" data-game="memory" aria-pressed="false"><span class="game-icon" aria-hidden="true">◇</span><span class="game-name">MEMORY TRAIL</span><span class="game-description">Remember and perform a number sequence</span><span class="game-chip">NUMBER MODEL</span></button>
+      </div>
+    </section>
+    <div class="play-layout">
+      <section class="play-target" aria-labelledby="challengeTitle">
+        <div class="play-kicker">01 / YOUR ADVENTURE <span id="gameTypeLabel">COUNT & SHINE</span></div>
+        <div class="challenge-heading"><div><h2 id="challengeTitle">HOW MANY FINGERS?</h2><p id="challengeSub">Say the number, then show it with your fingers!</p></div><div class="play-stats"><div><small>STARS</small><strong id="stars">0 <span>/ 5</span></strong></div><div><small>ROUND</small><strong id="round">1 <span>/ 5</span></strong></div></div></div>
+        <div class="challenge-stage" id="challengeStage">
+          <div class="number-orbit" id="numberOrbit"><span id="targetNumber">1</span></div>
+          <div class="word-label" id="spokenWord">ONE</div>
+          <img id="posePicture" class="pose-picture" alt="Reference hand gesture" hidden>
+          <div id="memoryPattern" class="memory-pattern" hidden aria-label="Number sequence to remember"></div>
+          <p class="play-prompt" id="promptText">Show <strong>one</strong> finger.</p>
+        </div>
+        <div class="challenge-timer" id="challengeTimer" hidden role="timer" aria-label="Time left for this challenge"><span>⏱ CHALLENGE TIMER</span><strong id="timerValue">1:00</strong><small id="timerNote">Timer starts when your camera starts</small></div>
+        <div class="progress-stars" id="progressStars" aria-label="Your game progress"></div>
+        <div id="gameFeedback" class="game-feedback" role="status" aria-live="polite">Choose a game and start the camera when you're ready.</div>
+        <div class="play-controls"><button type="button" class="btn btn-primary" id="repeatPrompt">🔊 HEAR IT AGAIN <span aria-hidden="true">↗</span></button><button type="button" class="btn btn-outline" id="newGame">↻ NEW GAME</button><button type="button" class="btn btn-outline" id="repeatSequence" hidden>◈ HEAR SEQUENCE TWICE AGAIN</button></div>
+        <label class="voice-picker" for="voiceChoice">🎤 Guide voice <select id="voiceChoice" aria-label="Choose a friendly guide voice"><option value="auto">Friendly voice (auto)</option></select><small>Natural voices depend on your browser and Windows settings.</small></label>
+      </section>
+      <section class="play-camera-section" aria-label="Real-time webcam recognition">
+        <div class="play-kicker">02 / LIVE HAND VISION <span id="cameraState">CAMERA OFF</span></div>
+        <div class="play-viewport">
+          <div class="view-corner tl"></div><div class="view-corner tr"></div><div class="view-corner bl"></div><div class="view-corner br"></div>
+          <video id="playVideo" autoplay playsinline muted hidden aria-label="Live mirrored camera preview"></video>
+          <div class="play-camera-empty" id="cameraPlaceholder"><span class="play-camera-symbol">◉</span><strong>READY, LITTLE LEARNER?</strong><small>Ask a grown-up to help turn on the camera</small></div>
+          <div class="scan-indicator" id="scanIndicator" hidden><span class="live-dot"></span> AUTO SCANNING</div>
+        </div>
+        <div class="play-camera-actions"><button type="button" class="play-secondary play-start" id="startPlayCamera">◉ START CAMERA & PLAY</button><button type="button" class="play-secondary" id="stopPlayCamera" disabled>■ STOP CAMERA</button></div>
+        <div class="play-reading"><span>LIVE MODEL READING</span><strong id="lastReading">Camera not started</strong><small id="scoreNote">Reads gestures automatically every ~0.7–2 seconds; scores are uncalibrated model votes.</small></div>
+        <div class="readiness"><span class="ready-dot" id="readyDot"></span><span id="readyText">Waiting for camera access</span></div>
+        <p class="camera-tip">Tip: Keep one hand and your wrist fully in view, use bright front lighting, and change your gesture between answers.</p>
+      </section>
+    </div>
+    <section class="play-explainer" aria-label="Help for parents and teachers"><div><strong>🎵 MUSIC & VOICE</strong><p>Choose a friendly installed English voice, then tap “Hear it again” anytime. Memory Trail reads the whole sequence twice. Original instrumental music is optional.</p></div><div><strong>🧠 TWO TRAINED MODELS</strong><p>Counting, Math, and Memory use the 0–5 HaGRID number classifier. Copy the Pose uses your separate six-gesture model. The results come from the camera, not simulated answers.</p></div><div><strong>🛡️ PRIVACY & LIMITATIONS</strong><p>Camera frames go to your local Python server and aren't saved by the game. Math and Memory have gentle timers with unlimited retries and no lost stars. Adult assistance is recommended.</p></div></section>
+  </main>
+  <footer class="site-footer"><span class="footer-brand">BLURRY <em>VISION</em> <small>© 2026</small></span><span>MADE FOR LEARNING · TEAM BLURRY VISION</span><div><a href="/studio">Studio</a><a href="/guide">Guide</a><a href="/play">Games</a></div></footer>
+  <script src="/static/js/site.js" defer></script><script src="/static/js/play.js" defer></script>
 </body>
 </html>

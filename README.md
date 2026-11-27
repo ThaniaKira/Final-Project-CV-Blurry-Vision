@@ -1,3 +1,27 @@
+# Blurry Vision — Interactive Learning Upgrade (v1.3)
+
+The original dark-magenta visual identity and previously trained HaGRID `.npz` weights are preserved. This version adds **four webcam-driven learning games**, **spoken English number/gesture instructions**, an **original optional instrumental soundtrack**, a **responsive header**, and **automatic Studio webcam recognition**. No fresh training or full HaGRID download is needed to run the website.
+
+## Run on Windows with VS Code
+
+Open this folder in VS Code and run in its terminal (Python 3.11 recommended):
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements_website.txt
+.\.venv\Scripts\python.exe src/app.py
+```
+
+Open `http://127.0.0.1:7860/`. The Games page is `http://127.0.0.1:7860/play` and the Studio is `/studio`.
+
+**Games:** Count & Shine (numbers 1–5), Copy the Pose (six gestures), Finger Math (addition/subtraction answers 1–5), and Memory Trail (increasing number sequences). Click **Start Camera & Play** once and allow camera access. The browser sends reduced-resolution JPEG frames to the **local Python server** for predictions; no separate capture/analyze click is needed. The Studio's webcam tab also scans automatically; photo uploads remain manually analyzable.
+
+Music is opt-in because browsers block unexpected autoplay. Click **♫ MUSIC OFF** in the header to hear the original instrumental loop. Number prompts are spoken by the browser via Speech Synthesis, subject to voices available on the device. Click **Hear it again** in a game or tap a number on the Gesture Guide to hear “one,” “two,” and so on.
+
+**Important limitations:** Webcam game validation is still required on your own PC. Two matching predictions are required before a star is awarded. CPU speed affects the rate of checking. A missed MediaPipe hand (detected hands = 0) is a detection failure, not a classifier failure. No claim of 100% accuracy is made. The app serves locally on 127.0.0.1 by default. See `docs/CHILD_GAMES_V1_3.md` for technical details and evaluation advice.
+
+---
+
 # BLURRY VISION · PHASE 5 WEBSITE (UI/UX UPDATE)
 
 **New navigation:** Home at `/`, Recognition Studio at **`/studio` (a separate page)**, and Gesture Guide at `/guide`.

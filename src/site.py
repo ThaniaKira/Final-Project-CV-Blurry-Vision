@@ -45,6 +45,13 @@ def recognizer():
     return DualRecognizer(WEIGHTS, NUMBER_WEIGHTS)
 
 
+@lru_cache(maxsize=1)
+def live_recognizer():
+    """Independent tracking-mode detector for ordered webcam frames."""
+    return DualRecognizer(WEIGHTS, NUMBER_WEIGHTS, stream=True)
+
+
+@lru_cache(maxsize=1)
 def status():
     trained = WEIGHTS.exists()
     backend = "rules"
@@ -123,11 +130,22 @@ async def analyze(image: UploadFile = File(...)):
 
 @app.post("/api/analyze/numbers")
 async def analyze_numbers(image: UploadFile = File(...)):
-    # Optional separate numeric API; does not change HTML/CSS/JS of the site.
     return await _analyze(image, numeric_only=True)
 
 
-async def _analyze(image: UploadFile, numeric_only=False):
+@app.post("/api/live")
+async def live_analysis(image: UploadFile = File(...), mode: str = "core"):
+    """Compact automatic webcam inference: 0 image rendering/encoding overhead.
+
+    The browser sends occasional JPEG frames from its live camera preview;
+    no frames are persisted. Ordered requests reuse the tracking-mode detector.
+    """
+    if mode not in ("core", "numbers"):
+        raise HTTPException(status_code=422, detail="mode must be core or numbers")
+    return await _analyze(image, numeric_only=(mode == "numbers"), live=True, include_image=False)
+
+
+async def _analyze(image: UploadFile, numeric_only=False, live=False, include_image=True):
     # Only pixels enter the existing pipeline; uploaded media is not written to disk.
     payload = await image.read(MAX_UPLOAD_BYTES + 1)
     if not payload:
@@ -147,20 +165,26 @@ async def _analyze(image: UploadFile, numeric_only=False):
 
     try:
         with LOCK:
-            core_prediction, number_prediction = recognizer().predict_both(frame)
-            detection_attempt = getattr(recognizer().extractor, "last_detection_attempt", "unknown")
+            active = live_recognizer() if live else recognizer()
+            core_prediction, number_prediction = active.predict_both(frame)
+            detection_attempt = getattr(active.extractor, "last_detection_attempt", "unknown")
             prediction = number_prediction if numeric_only else core_prediction
-            rendered = draw_result(frame, prediction)
+            rendered = draw_result(frame, prediction) if include_image else None
     except (ImportError, ModuleNotFoundError, BackendUnavailable) as exc:
         raise HTTPException(status_code=503, detail="The active model requires MediaPipe. Install requirements.txt and restart the app.") from exc
     except Exception as exc:
         # Do not return raw stack traces or file paths to the browser.
         raise HTTPException(status_code=500, detail="Recognition failed. Check the VS Code terminal for details.") from exc
 
-    ok, png = cv2.imencode(".png", rendered)
-    if not ok:
-        raise HTTPException(status_code=500, detail="Unable to render recognition output.")
+    image_uri = None
+    if include_image:
+        ok, png = cv2.imencode(".png", rendered)
+        if not ok:
+            raise HTTPException(status_code=500, detail="Unable to render recognition output.")
+        image_uri = "data:image/png;base64," + base64.b64encode(png.tobytes()).decode("ascii")
     details = prediction.to_dict()
+    if live:
+        details["points"] = prediction.points  # 21 landmarks for the browser overlay
     details["detection_attempt"] = detection_attempt
     details["number_prediction"] = {
         "gesture": number_prediction.label,
@@ -173,8 +197,7 @@ async def _analyze(image: UploadFile, numeric_only=False):
         details["model_status"] = "Untrained MediaPipe geometric rules; no HaGRID accuracy claim."
     else:
         details["model_status"] = "Saved HaGRID weights loaded; consult separate held-out evaluation for this head."
-    return JSONResponse({
-        "image": "data:image/png;base64," + base64.b64encode(png.tobytes()).decode("ascii"),
-        "details": details,
-        "status": status(),
-    }, headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
+    result = {"details": details, "status": status()}
+    if include_image:
+        result["image"] = image_uri
+    return JSONResponse(result, headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})

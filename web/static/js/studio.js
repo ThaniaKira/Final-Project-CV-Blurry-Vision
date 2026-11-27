@@ -1,4 +1,4 @@
-/* Blurry Vision Studio: UI only. Calls /api/analyze (the unchanged CV pipeline). */
+/* Studio v1.3. Auto-scans webcam through /api/live while retaining one-shot uploads. */
 (() => {
   const $ = id => document.getElementById(id);
   const fileInput = $('imageFile');
@@ -14,6 +14,7 @@
   const analyzeButton = $('analyzeBtn');
   const clearButton = $('clearBtn');
   const output = $('resultImage');
+  const liveCanvas = $('liveCanvas');
   const outputEmpty = $('resultEmpty');
   const overlay = $('processingOverlay');
   const modelName = $('modelName');
@@ -28,6 +29,7 @@
   let source = 'upload';
   let outputDataUrl = null;
   let busy = false;
+  let liveActive = false, liveBusy = false, liveTimer = null, liveGeneration = 0;
 
   const sampleNames = new Set(['open-hand', 'fist', 'peace', 'thumbs-up', 'pointing', 'ok']);
 
@@ -39,6 +41,7 @@
     resultMessage.classList.toggle('error-text', error);
   }
   function resetOutput() {
+    liveCanvas.hidden = true;
     output.hidden = true;
     output.removeAttribute('src');
     outputDataUrl = null;
@@ -63,7 +66,78 @@
     analyzeButton.disabled = true;
     resetOutput();
   }
+
+  function stopLive() {
+    liveActive = false;liveGeneration += 1;
+    if (liveTimer !== null) { clearTimeout(liveTimer);liveTimer = null; }
+    liveCanvas.hidden = true;
+  }
+  function liveSchedule(delay=650) {
+    if (liveTimer!==null)clearTimeout(liveTimer);
+    if(liveActive)liveTimer=setTimeout(liveTick,delay);
+  }
+  async function liveFrame() {
+    const width=480;
+    const scale=video.videoWidth?Math.min(1,width/video.videoWidth):1;
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(video.videoWidth*scale));
+    c.height=Math.max(1,Math.round(video.videoHeight*scale));
+    const ctx=c.getContext('2d');ctx.translate(c.width,0);ctx.scale(-1,1);
+    ctx.drawImage(video,0,0,c.width,c.height);
+    const blob=await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('Could not capture video frame')),'image/jpeg',0.78));
+    return {blob,canvas:c};
+  }
+  function drawLive(sourceCanvas, d) {
+    liveCanvas.width=sourceCanvas.width;liveCanvas.height=sourceCanvas.height;
+    const ctx=liveCanvas.getContext('2d');
+    ctx.drawImage(sourceCanvas,0,0);
+    const w=liveCanvas.width,h=liveCanvas.height;
+    if(d.bounding_box){
+      const [x1,y1,x2,y2]=d.bounding_box;
+      ctx.strokeStyle='#70ffc3';ctx.lineWidth=3;
+      ctx.strokeRect(x1*w/224,y1*h/224,(x2-x1)*w/224,(y2-y1)*h/224);
+    }
+    const points=d.points || null;
+    if(Array.isArray(points)&&points.length===21){
+      ctx.fillStyle='#ffc6f6';
+      for(const p of points){ctx.beginPath();ctx.arc(p[0]*w/224,p[1]*h/224,3,0,Math.PI*2);ctx.fill();}
+    }
+    ctx.fillStyle='rgba(15,8,25,.77)';ctx.fillRect(0,0,w,38);
+    ctx.fillStyle='#fff3fd';ctx.font='bold 14px Segoe UI, Arial';
+    ctx.fillText('LIVE  /  '+String(d.gesture||'—').replace(/_/g,' '),12,25);
+    output.hidden=true;outputEmpty.hidden=true;liveCanvas.hidden=false;
+    downloadButton.disabled=false;
+  }
+  async function liveTick() {
+    if(!liveActive||!stream)return;
+    if(liveBusy||document.hidden||!video.videoWidth){liveSchedule(850);return;}
+    liveBusy=true;const generation=liveGeneration;
+    try {
+      const {blob,canvas}=await liveFrame();
+      const form=new FormData();form.append('image',blob,'studio-live.jpg');
+      const response=await fetch('/api/live?mode=core',{method:'POST',body:form,cache:'no-store'});
+      const body=await response.json();
+      if(!response.ok)throw Error(body.detail||`HTTP ${response.status}`);
+      if(!liveActive||generation!==liveGeneration)return;
+      const d=body.details||{};
+      drawLive(canvas,d);
+      $('gestureLabel').textContent=String(d.gesture||'Unknown').replace(/_/g,' ');
+      $('confidence').textContent=(d.hand_count>0 && typeof d.confidence==='number' && body.status?.mode==='trained')
+        ?(d.confidence*100).toFixed(1)+'%*':'N/A';
+      $('timeMetric').textContent=typeof d.processing_ms==='number'?d.processing_ms.toFixed(1)+' ms':'—';
+      $('handMetric').textContent=String(d.hand_count??0);
+      setState('LIVE AUTO-SCANNING','ready');
+      const msg=d.hand_count>0?'Live gesture recognition running automatically. *Model votes are not calibrated probabilities.':
+        'No hand found. Move farther from the camera and show your entire palm and wrist.';
+      if(resultMessage.textContent!==msg)say(msg);
+    } catch(err) {
+      if(liveActive&&generation===liveGeneration){setState('LIVE CAMERA ERROR','error');say(err.message||'Live scan failed. Check the local server.',true);}
+    } finally {liveBusy=false;if(liveActive)liveSchedule();}
+  }
+  function startLive() {stopLive();liveActive=true;setState('LIVE AUTO-SCANNING','ready');liveSchedule(200);}
+
   function stopCamera() {
+    stopLive();
     if (stream) stream.getTracks().forEach(track => track.stop());
     stream = null;
     video.srcObject = null;
@@ -145,15 +219,17 @@
       cameraEmpty.hidden = true;
       dropzone.hidden = true;
       await video.play();
-      captureButton.disabled = false;
-      say('Camera ready. Show your gesture and click Capture Frame.');
+      captureButton.hidden = true;
+      captureButton.disabled = true;
+      say('Camera ready. Scanning your hand automatically. No capture button needed.');
+      startLive();
     } catch (err) {
       say('Camera access was blocked or unavailable. Allow permission or upload an image instead.', true);
     }
   });
   stopCameraButton.addEventListener('click', () => {
-    stopCamera();
-    say('Camera stopped.');
+    stopCamera();resetOutput();
+    say('Camera stopped. Upload an image or start the camera again.');
   });
   captureButton.addEventListener('click', () => {
     if (!stream || !video.videoWidth) {
@@ -224,9 +300,9 @@
     }
   });
   downloadButton.addEventListener('click', () => {
-    if (!outputDataUrl) return;
+    if (!outputDataUrl && liveCanvas.hidden) return;
     const link = document.createElement('a');
-    link.href = outputDataUrl;
+    link.href = !liveCanvas.hidden ? liveCanvas.toDataURL('image/png') : outputDataUrl;
     link.download = 'blurry-vision-result.png';
     document.body.appendChild(link);
     link.click();
@@ -258,6 +334,7 @@
       $('transparencyNote').textContent = info.note + ' The website does not modify training, weights, or model settings.';
     })
     .catch(() => { modelName.textContent = 'Model status unavailable'; modelNote.textContent = 'Please check the local server'; });
-  window.addEventListener('beforeunload', stopCamera);
+  window.addEventListener('pagehide', stopCamera);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&liveActive)liveSchedule(200);});
   resetOutput();
 })();

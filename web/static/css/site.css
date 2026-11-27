@@ -46,3 +46,41 @@
 @media(max-width:640px){.site-header{padding:0 18px}.brand{font-size:15px}.site-nav{display:none}.mobile-menu{display:flex;margin-left:auto}.hero{min-height:765px;height:calc(100svh - 72px);max-height:950px;align-items:flex-start}.hero-typography{font-size:24vw;top:28%;left:38%;opacity:.65}.hero-orb{width:105vw;top:12%;right:-42%}.hero-hand{top:22%;height:72%;width:114%;right:-47%;opacity:.68}.hero-content{margin:58px 22px 0;width:calc(100% - 44px);padding:0}.hero-kicker{font-size:9px;letter-spacing:.12em;margin-bottom:22px}.hero h1{font-size:clamp(59px,15.6vw,94px);position:relative;z-index:2}.hero-content>p{font-size:13px;line-height:1.72;margin-top:22px;max-width:300px;text-shadow:0 1px 13px #100916}.hero-buttons{gap:10px;max-width:340px}.hero-buttons .btn{font-size:9px;min-height:44px;padding:12px}.hero-footnote{font-size:8px;letter-spacing:.07em;max-width:280px;line-height:1.7;margin-top:26px}.hero-side-tag{display:none}.metrics-strip{grid-template-columns:repeat(3,1fr);min-height:110px;margin:0 12px}.metric{padding:17px 9px;display:block;text-align:center}.metric-icon{display:none}.metric strong{font-size:25px}.metric strong em{display:block;font-size:8px;margin-top:2px}.metric small{font-size:9px;margin-top:5px}.strip-arrow{display:none}.section-intro{padding:85px 22px 27px;display:block}.section-intro h2{font-size:48px}.section-intro>p{margin-top:22px}.feature-grid{padding:0 22px;grid-template-columns:1fr;gap:13px}.feature-card{min-height:280px}.feature-card h3{margin-top:80px;font-size:40px}.feature-symbol{right:15px;top:25px}.feature-card p{min-height:0}.cta-banner{margin:75px 22px;padding:34px 24px;display:block}.cta-banner .btn{margin-top:20px}.site-footer{margin:0 22px;flex-wrap:wrap;padding:24px 0;font-size:9px;min-height:125px}.site-footer>span:nth-child(2){order:3;width:100%}.studio-main,.guide-main{padding:38px 16px 65px}.studio-masthead h1{font-size:clamp(48px,12vw,76px)}.studio-masthead p{font-size:13px}.studio-masthead{margin-bottom:23px}.work-panel{padding:15px}.panel-head{align-items:flex-start}.panel-head h2{font-size:20px}.panel-top-mark{font-size:8px;margin-top:4px}.input-viewport,.result-viewport{height:318px}.source-tab{font-size:11px;padding:12px 5px}.dropzone h3{font-size:12px}.input-actions .btn-primary{min-width:0}.input-actions .btn{font-size:10px}.result-tile{padding:12px;min-height:75px}.result-tile strong{font-size:18px}.result-tile span{font-size:8px}.result-foot{align-items:flex-start;flex-direction:column}.studio-bottom{flex-direction:column;align-items:flex-start;gap:18px;margin-bottom:55px}.sample-heading{display:block}.sample-heading h2{font-size:32px}.sample-heading p{margin-top:14px}.sample-grid{grid-template-columns:repeat(3,1fr);gap:7px}.sample-choice span{font-size:8px;padding:9px 6px}.sample-choice img{padding:5px}.guide-lead{padding:15px 0 33px}.guide-lead h1{font-size:clamp(52px,12.8vw,70px)}.atlas-grid{grid-template-columns:1fr;gap:12px}.atlas-art{height:190px}.atlas-content{padding:24px}.guide-footer-cta{display:block;padding:28px 24px;margin-top:40px}.guide-footer-cta .btn{margin-top:21px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 [hidden]{display:none!important}
+
+/* v1.3 navigation scaling without changing the site's dark-magenta visual identity. */
+.site-header{gap:clamp(9px,1.5vw,22px)}
+.site-nav{gap:clamp(13px,2vw,31px);min-width:0}
+.site-nav a{white-space:nowrap;letter-spacing:.045em;font-size:clamp(9px,.82vw,11px)}
+.music-toggle{flex-shrink:0;border:1px solid rgba(236,158,225,.37);border-radius:7px;background:rgba(232,94,204,.09);color:#f4c9f1;min-height:42px;padding:9px 13px;display:inline-flex;align-items:center;gap:9px;letter-spacing:.075em;font-size:10px;font-weight:850;white-space:nowrap}
+.music-toggle:hover,.music-toggle.playing{background:rgba(223,91,200,.22);border-color:#efa4e6}
+.music-toggle>span:first-child{font-size:19px;line-height:1}
+@media(max-width:1350px){.site-header .nav-action{display:none}}
+@media(max-width:990px){.site-header .site-nav{display:none}.site-header .mobile-menu{display:flex;margin-left:4px}.site-header{justify-content:space-between}.site-header .music-toggle{margin-left:auto}.mobile-nav{top:calc(100% - 7px)}}
+@media(max-width:640px){.site-header{gap:8px}.site-header .music-toggle{padding:9px 11px;min-height:39px}.site-header .music-toggle .music-text{font-size:9px}.mobile-nav{left:10px;right:10px}}
+
+/* Live Studio output: hand overlays drawn locally, no base64 PNG per live request. */
+.result-viewport .live-output-canvas{width:100%;height:100%;object-fit:contain;display:block;background:#120b1b}
+.result-viewport .live-output-canvas[hidden]{display:none}
+
+/* Home-page game shelf, matching the existing holo/magenta cards. */
+.home-games{max-width:1320px;margin:65px auto 30px;padding:0 clamp(20px,4vw,60px)}
+.home-games-heading{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:24px;margin-bottom:26px}
+.home-games-heading h2{font:clamp(48px,5.7vw,78px)/.96 var(--display);margin:11px 0 0}.home-games-heading h2 span{color:#e592db}
+.home-games-heading p{max-width:360px;color:#a99aad;font-size:13px;line-height:1.7}
+.home-game-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.home-game-grid a{min-height:210px;display:flex;flex-direction:column;align-items:start;padding:24px;background:linear-gradient(140deg,#261632,#100b19);border:1px solid var(--line);transition:transform .2s,border-color .2s}
+.home-game-grid a:hover{transform:translateY(-4px);border-color:#f19bdf}
+.home-game-grid a>span{font-size:38px;margin-bottom:20px}.home-game-grid strong{font:25px var(--display)}.home-game-grid small{color:#b09db9;font-size:11px;margin-top:8px}
+.home-game-grid b{color:#eda9df;font-size:10px;letter-spacing:.1em;margin-top:auto;padding-top:20px}
+@media(max-width:900px){.home-game-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.home-games{margin-top:30px}.home-game-grid a{min-height:175px;padding:16px}.home-game-grid strong{font-size:21px}.home-game-grid a>span{font-size:30px}}
+
+/* Number pronunciation companion on the Gesture Guide. */
+.number-sound-station{margin-top:65px;padding:34px;border:1px solid var(--line);background:linear-gradient(135deg,#22132d,#100b18)}
+.number-sound-station h2{font:clamp(34px,4.7vw,64px)/1 var(--display);margin:16px 0 10px}
+.number-sound-station p{font-size:13px;line-height:1.65;color:#b8a4c1;max-width:620px}
+.sound-number-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:25px 0}
+.sound-number-row button{border:1px solid #9a649d;background:#392247;color:#fce6f5;font:52px var(--display);padding:18px 6px;border-radius:10px;min-height:105px}
+.sound-number-row button:hover{background:#51305d;border-color:#ef99db}
+.sound-number-row small{display:block;font:850 10px var(--font);letter-spacing:.08em;color:#ebb0df;margin-top:7px}
+@media(max-width:640px){.number-sound-station{padding:21px}.sound-number-row{gap:5px}.sound-number-row button{font-size:36px;min-height:85px}.sound-number-row small{font-size:8px;letter-spacing:0}}

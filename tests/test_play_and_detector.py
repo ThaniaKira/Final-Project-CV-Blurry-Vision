@@ -13,11 +13,13 @@ def test_play_page_and_existing_nav():
     c = TestClient(app)
     r = c.get('/play')
     assert r.status_code == 200
-    assert 'CHECK MY FINGERS' in r.text
+    assert 'START CAMERA &amp; PLAY' in r.text or 'START CAMERA & PLAY' in r.text
+    assert all(title in r.text for title in ('COUNT & SHINE', 'COPY THE POSE', 'FINGER MATH', 'MEMORY TRAIL'))
     assert '/static/js/play.js' in r.text
     for route in ('/', '/studio', '/guide'):
         assert 'href="/play"' in c.get(route).text
-    assert '/api/analyze/numbers' in c.get('/static/js/play.js').text
+    assert '/api/live?mode=numbers' in c.get('/static/js/play.js').text
+    assert 'data-game="match"' in r.text
 
 
 def test_no_hand_returns_none_with_attempt_name():
